@@ -121,6 +121,20 @@ describe('ProviderConnectView — two groups, rows open the sheet', () => {
     expect(render()).toContain('Search 184 providers');
   });
 
+  test('search opts out of password-manager form-fill and stays read-only until focus', () => {
+    const out = render({ searchReadOnly: true });
+    expect(out).toContain('type="search"');
+    expect(out).toContain('data-1p-ignore');
+    expect(out).toContain('data-form-type="other"');
+    expect(out).toContain('readOnly=""');
+    expect(out).toContain('name="provider-catalogue-search"');
+  });
+
+  test('Clear stays visible while the search has text', () => {
+    const out = render({ search: 'anthropic' });
+    expect(out).toContain('opacity-100');
+  });
+
   test('no instruction line unless the host passes one', () => {
     expect(render()).not.toContain('px-3 text-xs text-pretty');
     expect(render({ note: 'Ask an owner of this project to add a key.' })).toContain(
