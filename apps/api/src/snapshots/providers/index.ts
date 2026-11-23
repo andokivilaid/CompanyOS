@@ -2,15 +2,16 @@
  * Sandbox provider adapters.
  *
  * A provider builds and hosts the actual sandbox image. Platinum (the
- * reference) and Daytona (legacy fallback, removal scheduled) implement the
- * `SandboxProviderAdapter` interface and slot in here.
+ * reference), Daytona (legacy fallback, removal scheduled), and E2B (local-dev
+ * / opt-in) implement the `SandboxProviderAdapter` interface and slot in here.
  *
- * The provider is identified by a stable string (`platinum` or `daytona`) that
- * lives on the template row. The session boot path resolves the
+ * The provider is identified by a stable string (`platinum`, `daytona`, or
+ * `e2b`) that lives on the template row. The session boot path resolves the
  * adapter by that string and delegates the actual snapshot build / state check.
  */
 
 import { daytonaProvider } from './daytona';
+import { e2bProvider } from './e2b';
 import { platinumProvider } from './platinum';
 
 interface SandboxResourceSpec {
@@ -159,6 +160,7 @@ export interface SandboxProviderAdapter {
 const ADAPTERS = new Map<string, SandboxProviderAdapter>();
 ADAPTERS.set(daytonaProvider.id, daytonaProvider);
 ADAPTERS.set(platinumProvider.id, platinumProvider);
+ADAPTERS.set(e2bProvider.id, e2bProvider);
 
 export function getSandboxProvider(id: string): SandboxProviderAdapter {
   const adapter = ADAPTERS.get(id);

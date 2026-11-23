@@ -150,7 +150,7 @@ describe('serializeProject ⇄ ProjectSchema', () => {
     );
   });
 
-  test.each(['managed', 'justavps', 'e2b', 'unknown'])(
+  test.each(['managed', 'justavps', 'unknown'])(
     'does not surface retired or unknown project pin %s',
     (provider) => {
       const out = serializeProject(

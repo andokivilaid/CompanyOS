@@ -23,9 +23,9 @@ export const SANDBOX_PORTS = {
 
 /**
  * Platinum is the reference provider. Daytona is a legacy fallback whose
- * removal is scheduled. E2B support is discontinued.
+ * removal is scheduled. E2B is the local-dev / opt-in cloud provider.
  */
-export type SandboxProviderName = 'platinum' | 'daytona';
+export type SandboxProviderName = 'platinum' | 'daytona' | 'e2b';
 export type ServerTypeOption = string;
 
 export interface SandboxCreateProgress {

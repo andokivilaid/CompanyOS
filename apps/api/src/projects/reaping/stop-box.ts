@@ -276,7 +276,7 @@ export async function stopExpiredBox(
   await flushDriveSyncBeforeStop(row);
 
   try {
-    // A legacy `e2b` row (E2B support is discontinued) skips the remote call
+    // A row whose provider key is unset on this deployment skips the remote call
     // and stops locally.
     if (isProviderName(row.provider)) await getProvider(row.provider).stop(row.externalId);
   } catch (err) {

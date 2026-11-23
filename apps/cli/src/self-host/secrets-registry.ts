@@ -136,6 +136,7 @@ export const SECRET_DEFS: SecretDef[] = [
   // because it's unconditionally needed.
   { key: 'PLATINUM_API_KEY', category: 'sandbox', kind: 'operator', required: true },
   { key: 'DAYTONA_API_KEY', category: 'sandbox', kind: 'operator', required: false },
+  { key: 'E2B_API_KEY', category: 'sandbox', kind: 'operator', required: false },
   { key: 'PLATINUM_WEBHOOK_SECRET', category: 'sandbox', kind: 'operator', required: false },
 
   // Managed git — NOT init-required: configured in-app (Settings → Git,

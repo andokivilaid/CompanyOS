@@ -8,7 +8,9 @@ describe('tryGetProvider', () => {
     expect(tryGetProvider('some-retired-provider')).toBeNull();
   });
 
-  test('returns null for a legacy e2b row: E2B support is discontinued', () => {
+  test('returns null for e2b when E2B_API_KEY is unset on this process', () => {
+    // Same contract as platinum/daytona without their keys: getProvider throws,
+    // tryGetProvider swallows so teardown of a row whose key is gone still works.
     expect(tryGetProvider('e2b')).toBeNull();
   });
 

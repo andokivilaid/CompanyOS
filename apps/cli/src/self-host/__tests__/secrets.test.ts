@@ -35,9 +35,9 @@ describe('secrets-registry pure helpers', () => {
     expect(platinum.required).toBe(true);
     expect(platinum.kind).toBe('operator');
     expect(platinum.masked).toBe('plt…mnop');
-    // Daytona is a legacy fallback: listed, never required. E2B is gone.
+    // Daytona is a legacy fallback: listed, never required. E2B is listed, never required.
     expect(sandboxGroup.rows.find((r) => r.key === 'DAYTONA_API_KEY')?.required).toBe(false);
-    expect(sandboxGroup.rows.some((r) => r.key.startsWith('E2B_'))).toBe(false);
+    expect(sandboxGroup.rows.find((r) => r.key === 'E2B_API_KEY')?.required).toBe(false);
 
     const llmGroup = groups.find((g) => g.category === 'llm')!;
     const openrouter = llmGroup.rows.find((r) => r.key === 'OPENROUTER_API_KEY')!;
@@ -177,9 +177,9 @@ describe('missingRequiredSecrets', () => {
     expect(sandboxProviderConfigured(env)).toBe(true);
   });
 
-  test('a stale E2B selection is not a configured sandbox provider (E2B support is discontinued)', () => {
+  test('E2B with its API key is a configured sandbox provider', () => {
     const env = baseEnv({ ALLOWED_SANDBOX_PROVIDERS: 'e2b', E2B_API_KEY: 'e2b_live_key' });
-    expect(sandboxProviderConfigured(env)).toBe(false);
+    expect(sandboxProviderConfigured(env)).toBe(true);
   });
 
   test('a fully-configured env (Platinum + GitHub PAT + OpenRouter) also reports nothing missing', () => {

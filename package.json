@@ -183,7 +183,8 @@
       "@electron/asar@3.4.1": "patches/@electron__asar@3.4.1.patch",
       "rimraf@2.6.3": "patches/rimraf@2.6.3.patch",
       "streamdown@1.6.11": "patches/streamdown@1.6.11.patch",
-      "next@16.4.5": "patches/next@16.4.5.patch"
+      "next@16.4.5": "patches/next@16.4.5.patch",
+      "e2b@2.37.0": "patches/e2b@2.37.0.patch"
     }
   },
   "version": "1.0.0",

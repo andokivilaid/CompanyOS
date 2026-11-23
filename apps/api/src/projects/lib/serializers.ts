@@ -204,7 +204,7 @@ export function serializeSession(
     workspace_id: row.projectId,
     branch_name: row.branchName,
     base_ref: row.baseRef,
-    // A legacy `e2b` row passes through as stored: E2B support is discontinued.
+    // An `e2b` row passes through as stored when E2B is enabled on this deployment.
     sandbox_provider: row.sandboxProvider as ProjectSession['sandbox_provider'],
     sandbox_id: row.sandboxId,
     sandbox_url: forRequestApiUrl(row.sandboxUrl),

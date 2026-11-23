@@ -311,12 +311,20 @@ describe('ProjectSchema', () => {
     expect(parsed.project_role).toBeNull();
   });
 
-  test('accepts Platinum and Daytona and rejects retired sandbox providers in project pin fields', () => {
+  test('accepts Platinum, Daytona, and E2B and rejects retired sandbox providers in project pin fields', () => {
     expect(() =>
       ProjectSchema.parse(
         projectFixture({
           default_sandbox_provider: 'platinum',
-          available_sandbox_providers: ['platinum', 'daytona'],
+          available_sandbox_providers: ['platinum', 'daytona', 'e2b'],
+        }),
+      ),
+    ).not.toThrow();
+    expect(() =>
+      ProjectSchema.parse(
+        projectFixture({
+          default_sandbox_provider: 'e2b',
+          available_sandbox_providers: ['e2b'],
         }),
       ),
     ).not.toThrow();
@@ -327,8 +335,7 @@ describe('ProjectSchema', () => {
         }),
       ),
     ).toThrow();
-    // E2B support is discontinued: `e2b` is a retired provider too.
-    const retiredProviders = ['e2b', ['local', 'docker'].join('_'), ['local', 'docker'].join('-')];
+    const retiredProviders = [['local', 'docker'].join('_'), ['local', 'docker'].join('-')];
     for (const retiredProvider of retiredProviders) {
       expect(() =>
         ProjectSchema.parse(

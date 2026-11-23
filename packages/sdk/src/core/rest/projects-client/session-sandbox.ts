@@ -26,7 +26,7 @@ export interface ProjectSessionSandbox {
   session_id: string;
   project_id: string;
   account_id: string;
-  provider: "platinum" | "daytona";
+  provider: "platinum" | "daytona" | "e2b";
   external_id: string | null;
   base_url: string | null;
   status: ProjectSessionSandboxStatus;

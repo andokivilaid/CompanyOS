@@ -539,30 +539,72 @@ mocked internals when a real surface exists.
 - **Web** — Next.js dev server on `http://localhost:3000`.
 - **API** — Bun server on `http://localhost:8008/v1` (`/health` returns JSON).
 - **Supabase** — local, on `http://127.0.0.1:54321` (Docker).
-- **Sandboxes** — REAL cloud sandboxes on Platinum, the reference provider
-  (`PLATINUM_API_KEY` in `apps/api/.env` / `.env.local`). Daytona is a legacy
-  fallback with removal scheduled and no support guarantee; E2B support is
-  discontinued. Each project
-  session gets its own sandbox; `session_id == sandbox_id`. The sandbox daemon is
-  reached through `http://localhost:8008/v1/p/<external_id>/8000/...`.
-  The session runtime answers on the same proxy, under `/kortix/runtime/*`,
-  on both harnesses.
+- **Sandboxes** — REAL cloud sandboxes. **Platinum** is the reference provider
+  (`PLATINUM_API_KEY`). **Daytona** is a legacy fallback (removal scheduled).
+  **E2B** is the local-dev / opt-in provider (`E2B_API_KEY`): the API dials the
+  sandbox via `sandbox.getHost(port)`, so no Platinum key and no cloudflared
+  tunnel are required. Select providers with
+  `ALLOWED_SANDBOX_PROVIDERS` (comma-separated; first entry = default). Each
+  project session gets its own sandbox; `session_id == sandbox_id`. The sandbox
+  daemon is reached through
+  `http://localhost:8008/v1/p/<external_id>/8000/...`. The session runtime
+  answers on the same proxy, under `/kortix/runtime/*`.
 - **Tunnel** — `scripts/dev-local.sh` (`pnpm dev`) auto-starts a cloudflared
-  quick tunnel so cloud sandboxes can call back to the local API (`KORTIX_URL`).
+  quick tunnel when the default provider is Platinum or Daytona, so those
+  sandboxes can call back to `KORTIX_URL`. With `ALLOWED_SANDBOX_PROVIDERS=e2b`
+  (or first entry `e2b`), the tunnel is **off by default**.
 
-Bring it up with `pnpm dev` from `suna/` (it loads `apps/api/.env` +
-`apps/web/.env`, starts Supabase, the API, the web app, and the tunnel). Check
-what's already running before starting a duplicate: `curl -s
-localhost:8008/v1/health`, `lsof -iTCP:3000 -sTCP:LISTEN`.
+Bring it up with `pnpm dev` (it loads `apps/api/.env` + `apps/web/.env` when
+decryptable, else plaintext `apps/api/.env.local`, then starts Supabase, the
+API, the web app, and optionally the tunnel). Check what's already running
+before starting a duplicate: `curl -s localhost:8008/v1/health`,
+`lsof -iTCP:3000 -sTCP:LISTEN`.
 
-> **Secrets are dotenvx-encrypted (mandatory).** `apps/api/.env` (+ `.env.dev`)
-> are committed as ciphertext (`KEY=encrypted:…`); keys live in Dotenv Armor.
-> **Never write a plaintext secret into a tracked file or commit** — add/change
-> values only via `dotenvx set KEY value -f apps/api/.env` (then commit), read
-> with `dotenvx get`, and machine-local overrides go in the gitignored
-> `apps/api/.env.local`. If the user pastes a key, store it with `dotenvx set`,
-> never paste it raw. A pre-commit hook + GitHub push protection enforce this —
-> don't bypass them. Full procedure: the **dotenvx-secrets** skill.
+### Local development with E2B
+
+Use E2B when you have no Platinum key / Dotenv Armor access.
+
+1. Create an API key at [e2b.dev](https://e2b.dev) → Dashboard → API Keys.
+2. Copy `apps/api/.env.local.example` → `apps/api/.env.local` and set at least:
+   - `ALLOWED_SANDBOX_PROVIDERS=e2b`
+   - `E2B_API_KEY=…`
+   - `E2B_DOMAIN=e2b.dev` (default; omit unless self-hosting E2B)
+   - `E2B_TEMPLATE=kortix-sandbox` (after the template build below), or leave
+     empty and let the snapshot builder create per-project templates
+   - local Supabase / `DATABASE_URL` / `API_KEY_SECRET` / `TUNNEL_SIGNING_SECRET`
+     as listed in the example file
+3. Build the base E2B template once (optional if the snapshot builder runs):
+   ```bash
+   export E2B_API_KEY=…
+   cd apps/sandbox && npx e2b template build
+   ```
+   `apps/sandbox/e2b.toml` points at `apps/sandbox/Dockerfile`.
+4. `pnpm install` (pulls the `e2b` SDK), then `pnpm dev`.
+5. When `E2B_API_KEY` is set and `PLATINUM_API_KEY` is empty, `dev-local.sh`
+   auto-sets `ALLOWED_SANDBOX_PROVIDERS=e2b` if you left the default as
+   `platinum`. Tunnel stays off. `PLATINUM_API_KEY` is **not** required.
+
+Env vars (E2B):
+
+| Var | Required when | Default |
+| --- | --- | --- |
+| `ALLOWED_SANDBOX_PROVIDERS` | always (first = default) | `platinum` (script); use `e2b` for local-dev |
+| `E2B_API_KEY` | `e2b` is in ALLOWED | (none) |
+| `E2B_DOMAIN` | optional | `e2b.dev` |
+| `E2B_TEMPLATE` | optional fallback template | (none) |
+| `KORTIX_E2B_RUNTIME_BACKSTOP_MS` | optional | `3600000` |
+| `KORTIX_E2B_REMOVE_TIMEOUT_MS` | optional | `25000` |
+| `KORTIX_E2B_RENEW_TIMEOUT_MS` | optional | `25000` |
+| `KORTIX_E2B_STOP_TIMEOUT_MS` | optional | `25000` |
+| `KORTIX_DEV_TUNNEL` | optional | `auto` (`0` forces tunnel off) |
+
+> **Secrets are dotenvx-encrypted on the shared profiles.** `apps/api/.env`
+> (+ `.env.dev`) are committed as ciphertext; keys live in Dotenv Armor.
+> Contributors without Armor use the gitignored plaintext
+> `apps/api/.env.local` (see `.env.local.example`). `dev-local.sh` warns on
+> decrypt failure and starts the API with `dev:envfile` so undecrypted
+> `encrypted:…` values never hard-fail the boot. Never commit plaintext
+> secrets. Full procedure for Armor users: the **dotenvx-secrets** skill.
 
 ### Authenticating to the live API (for scripts/tests)
 

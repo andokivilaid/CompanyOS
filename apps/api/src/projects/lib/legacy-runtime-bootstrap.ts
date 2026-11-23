@@ -390,6 +390,9 @@ export function relaunchStrategyFor(provider: ProviderName | string): RelaunchSt
     case 'platinum':
       return 'pt-app';
     case 'daytona':
+    case 'e2b':
+      // Daytona and E2B re-run (or explicitly relaunch) the entrypoint on start /
+      // connect; staging alone converges them at the next wake.
       return 'next-start';
     default:
       return null;

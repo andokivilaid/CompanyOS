@@ -129,7 +129,7 @@ interface SandboxHealthPayload {
    */
   status: ReturnType<typeof serializeSandboxStatus> | null;
   provider_mode: 'automatic' | 'pinned';
-  selected_provider: 'platinum' | 'daytona' | null;
+  selected_provider: 'platinum' | 'daytona' | 'e2b' | null;
 }
 
 // Safe degraded payload: same shape as the happy path, surfaced when any

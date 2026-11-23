@@ -2749,6 +2749,7 @@ export function sandboxProviders(env: Record<string, string>): string[] {
 const SANDBOX_PROVIDER_KEY: Record<string, string> = {
   platinum: 'PLATINUM_API_KEY',
   daytona: 'DAYTONA_API_KEY',
+  e2b: 'E2B_API_KEY',
 };
 
 /** A configured sandbox provider is selected and has its required key. */

@@ -1,9 +1,9 @@
 import { config } from '../../config';
 
 // Platinum is the reference provider; Daytona is a legacy fallback (removal
-// scheduled). E2B support is discontinued: a stored `e2b` row resolves through
-// tryGetProvider() to null.
-export type ProviderName = 'platinum' | 'daytona';
+// scheduled). E2B is the local-dev / opt-in cloud provider (API reaches the
+// sandbox via sandbox.getHost(port); no cloudflared tunnel required).
+export type ProviderName = 'platinum' | 'daytona' | 'e2b';
 
 export class WarmRuntimeUnavailableError extends Error {
   constructor(message: string) {

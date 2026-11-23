@@ -78,7 +78,7 @@ beforeEach(() => {
 const last = () => calls.at(-1)!;
 
 test('AppHostingProvider is exactly the supported hosted provider set', () => {
-  const exactProviderSet: Equal<AppHostingProvider, 'platinum' | 'daytona'> = true;
+  const exactProviderSet: Equal<AppHostingProvider, 'platinum' | 'daytona' | 'e2b'> = true;
   expect(exactProviderSet).toBe(true);
 });
 

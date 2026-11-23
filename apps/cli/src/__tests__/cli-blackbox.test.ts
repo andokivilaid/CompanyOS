@@ -578,8 +578,8 @@ describe('kortix CLI black-box behavior', () => {
       provider: 'platinum',
     });
 
-    // Retired providers (E2B support is discontinued) are rejected before any request.
-    for (const retiredProviderId of [['local', 'docker'].join('-'), 'e2b']) {
+    // Unknown / retired provider ids are rejected before any request.
+    for (const retiredProviderId of [['local', 'docker'].join('-'), 'managed']) {
       const retiredProvider = await runCli([
         'apps',
         'deploy',

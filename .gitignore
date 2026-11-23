@@ -43,6 +43,7 @@ build/
 !apps/api/.env.dev
 !apps/api/.env.staging
 !apps/api/.env.prod
+!apps/api/.env.local.example
 !apps/web/.env
 !apps/web/.env.dev
 !apps/web/.env.staging
