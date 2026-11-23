@@ -168,6 +168,7 @@ function projectFixture(overrides: Record<string, unknown> = {}) {
       program_agents: false,
       evals: false,
       desktop_tabs: false,
+      review_swipe: false,
       calendar: false,
     },
     experimental_features: [],
@@ -934,7 +935,6 @@ describe('envelopes', () => {
       'chat',
       'shared_drives',
       'goals',
-      'workspace_volume',
       'email_channel',
       'session_groups',
       'chrome',
@@ -947,6 +947,7 @@ describe('envelopes', () => {
       'evals',
       'desktop_tabs',
       'calendar',
+      'review_swipe',
     ]);
   });
 

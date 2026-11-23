@@ -2568,7 +2568,7 @@ a prefix that names its kind. Create and manage them on
 | `kortix_pat_` | Workspace key (**Workspace settings** → **API keys**, `POST /v1/workspaces/<id>/tokens`, `kortix tokens new --scope …`) | One workspace. Every other workspace answers `403 credential_fence_refused`. | You, with your current role, narrowed by the key's scope. |
 | `kortix_pat_` | Personal key (`kortix login`, **Preferences** → **Personal keys**, `POST /v1/accounts/tokens` without `project_id`) | Every workspace you belong to. | You, with your role in each workspace. |
 | `kortix_sa_` | Service account key (**Workspace settings** → **Tokens & automation**, `kortix tokens service-accounts new`) | The service account's workspace. | The service account. It has no access until someone assigns it a role. |
-| `kortix_oat_` | OAuth access token from [Sign in with Kortix](/docs/developers#sign-in-with-kortix). It lasts 1 hour. A `kortix_ort_` refresh token gets a new one. | The workspace you chose on the consent screen. A token issued before 2026-11-06 reaches every workspace. | The person who approved the app. |
+| `kortix_oat_` | OAuth access token from [Sign in with Kortix](/docs/developers#sign-in-with-kortix). It lasts 1 hour. A `kortix_ort_` refresh token gets a new one. | The workspace you chose on the consent screen, or every workspace you can open when you chose **All my workspaces**. A token issued before 2026-11-06 reaches every workspace. | The person who approved the app. |
 | `kortix_gw_` | Workspace gateway key (`kortix gateway keys new`) | The LLM gateway inference routes of one workspace, and nothing else. See [Call the LLM gateway from your own app](#call-the-llm-gateway-from-your-own-app). | The workspace. |
 | `kortix_scim_` | SCIM token (**Workspace settings** → **Identity & directory**) | Directory sync under `/scim/v2` for one account. | The directory. |
 | `kortix_pat_` in `KORTIX_TOKEN` | Session token. Kortix sets it in every session sandbox. | The session's workspace. It ends with the session. | The agent of that one session. |
@@ -2769,7 +2769,7 @@ These are the codes clients branch on most. The linked section explains each fix
 | `workspace_setting_read_only` | `400` | `PATCH /v1/workspaces/:id` named a workspace setting. `field` and `writer` (the route that writes it) are in the body. | The `writer` route. |
 | `workspace_ambiguous` | `409` | A legacy account key names several workspaces (an account the split has not reached). | Name the workspace id. |
 | `no_workspace` | `409` | You belong to no workspace yet. | `POST /v1/workspaces`, or accept an invite. |
-| `new_workspace_requires_person` | `403` | An API key, a service account or a workspace key tried to create a workspace. | Sign in, or use a personal key. |
+| `new_workspace_requires_person` | `403` | An API key, a service account, a workspace key, an OAuth token bound to one workspace or an App viewer token tried to create a workspace. | Sign in, use a personal key, or reconnect the OAuth app and choose **All my workspaces**. |
 | `account_creation_restricted` | `403` | The deployment lets only its admin create workspaces. | Ask an admin for an invite. |
 | `request_deadline` | `503` | A request ran past the API's 25-second processing limit. | Retry the read. Check the state before you repeat a write. |
 | `git_mirror_unavailable` | `503` | The workspace repository is temporarily unreachable. | Retry after `Retry-After`. [Git](/docs/developers#git) |
@@ -5326,7 +5326,13 @@ when you mount `handler` elsewhere.
 #### Consent and revocation
 
 The first sign-in shows a Kortix consent screen with your app's name and
-scopes. Kortix remembers the approval per person and app. Later sign-ins
+scopes. An app that asks for the `kortix` scope also asks which workspaces it
+gets. **All my workspaces** is the default: the token has the person's whole
+reach, the same as `kortix login`: every workspace they can open, including
+ones they join later, and it can create workspaces. Picking one workspace
+narrows the token to it: a request for another workspace answers
+`403 credential_fence_refused`.
+Kortix remembers the approval per person and app. Later sign-ins
 return straight to your app. A person revokes an app with
 `kortix.accounts.connectedApps.list()` and `.revoke(clientId)`, or on the web
 and in the CLI as [Security](/docs/guide#security) describes. After a revoke, the
@@ -6284,7 +6290,7 @@ A workspace is one account and its one project. Its id is `workspace_id`, always
 - With `onEvent`, it streams the same request (`Accept: text/event-stream`) and reports the phases `validating`, `creating_repository`, `registering` and `seeding`; the last frame is `{type: "done", project, workspace}`. On React Native, omit `onEvent`.
 - On an older API it sends `new_workspace: true` to `POST /v1/projects/provision` instead.
 - `403` `account_creation_restricted`: the deployment lets only its admin create accounts. Ask an admin for an invite.
-- `403` `new_workspace_requires_person`: only a signed-in person or a personal key creates a workspace, never an API key, a service account or a workspace key.
+- `403` `new_workspace_requires_person`: only a signed-in person, a personal key or an OAuth app granted **All my workspaces** creates a workspace, never an API key, a service account, a workspace key, an OAuth token bound to one workspace or an App viewer token.
 
 ```ts
 import { createWorkspace, isNoWorkspaceError } from '@kortix/sdk';
@@ -6548,7 +6554,7 @@ triggers:
 
 Reconcile stores the normalized policy for later session creation. It does not reshare existing sessions, reused sessions or pinned targets. No bulk backfill is implicit or exposed by this feature; a later authorized migration must select and audit its targets explicitly. A session retains the reader policy stamped at creation. A later explicit session-sharing choice clears that stamp, including a choice of private. DMs never receive additive readers; private-channel membership and deleted-session gates still apply.
 
-Reader standing permits session inventory, session details, saved log/transcript and authorized trigger-run history reads only. It does not permit prompts, start/restart/stop/delete, configuration or scope changes, sharing, approval answers or runtime proxy access. Existing independent owner/manager privileges remain unchanged.
+Reader standing permits session inventory, session details, the saved session log and authorized trigger-run history reads only. It does not permit prompts, start/restart/stop/delete, configuration or scope changes, sharing, approval answers or runtime proxy access. Existing independent owner/manager privileges remain unchanged.
 
 In trigger history, `status: fired` means delivery, not a successful agent turn. Inspect `run_status`, `run_error` and `ended_at` for terminal execution. Hidden runs are not counted as successes: an empty page with `next_cursor` can still have older authorized records.
 
@@ -6852,11 +6858,10 @@ Saved history is the copy of the session log that the API stores. A stopped sand
 - When `GET …/log` fails (a `5xx`, the network, a `404` with no `code`, an invalid page), `useSession` keeps the copy on screen and reads the page again after 2 s, 10 s and 30 s, or after the API's `Retry-After` (at most 60 s).
 - No hook reads `GET …/transcript`.
 
-To show a session before `useSession` binds it, for example on a connecting screen, call `readSavedSessionCopy({ projectId, sessionId, runtimeSessionId })` from `@kortix/sdk`. It never throws and resolves `{ log, empty, envelope }`:
+To show a session before `useSession` binds it, for example on a connecting screen, call `readSavedSessionCopy({ projectId, sessionId, runtimeSessionId })` from `@kortix/sdk`. It never throws and resolves `{ log, empty }`:
 
 - `log` is the newest session-log page (`GET …/log`). A new session with no stored log answers `404` `session_log_missing`: `log` is `null` and nothing else is read.
 - `empty` is `true` when the page proves the conversation empty and no turn ended or is open. Show the composer then.
-- `envelope` is deprecated and always `null`.
 
 `useSession` reads the log page again when it binds.
 
@@ -7282,7 +7287,7 @@ Two device stores keep what a person already saw, so a reload or a cold start pa
 | Store | Keeps | Default bounds |
 | --- | --- | --- |
 | `createPersistedQueryCache({ storage, userId, shouldPersist })` | React Query results that `shouldPersist` accepts. `isPersistableQueryKey` accepts accounts, workspaces, workspace detail, session lists and session rows. A restored entry refetches when it is first read. | 1,000,000 characters, 7 days |
-| `createSavedCopyStore({ storage, userId })`, registered with `setSavedCopyStore` | The saved session copies the server sent. `useSession` paints a kept copy before the server answers. | 12 sessions, 1,500,000 characters, 300,000 characters per copy, 14 days |
+| `createSavedCopyStore({ storage, userId })`, registered with `setSavedCopyStore` | The newest session-log page (`GET …/log`) of each session the person opened. `useSession` paints a kept page before the server answers. | 12 sessions, 1,500,000 characters, 300,000 characters per page, 14 days |
 
 ```ts
 import type { QueryClient } from '@tanstack/react-query';
@@ -8995,7 +9000,7 @@ See [Computers](/docs/guide#computers).
 | Agents | `workflows.list()` · `workflows.control(runId, body)` | The workflow runs on this session's sandbox, newest first · pause, resume or stop a run, or restart one of its agents. `list` starts a sleeping session. |
 | Loops | `reminders.list()` · `.create(input)` · `.update(reminderId, input)` · `.remove(reminderId)` · `.run(reminderId)` | The session's reminders. `run` fires one now; the schedule does not move. |
 
-`s.transcript()`, `s.transcriptSync()`, `s.pending()` and `s.runtime` are deprecated. See [Deprecated names](#deprecated-names).
+`s.pending()` and `s.runtime` are deprecated. See [Deprecated names](#deprecated-names).
 
 ### React hooks
 
@@ -9317,6 +9322,22 @@ Pure functions over v1 messages (`MessageWithParts`, `kortix.transcript.v1`, `KO
 
 The grouping and status functions accept the structural types `PartLike`, `MessageInfoLike`, `TurnLike`, `ToolStateLike` and `SessionStatusLike`, so your own message shapes work.
 
+### Removed with the v1 transcript
+
+The session-log major is a breaking release. The API serves no `GET …/sessions/:sid/transcript` and no `/v1/public/session-shares/**`, so the SDK removed every name that read them. The session log (`GET …/log`) is every session's saved history.
+
+| Removed | Use instead |
+| --- | --- |
+| `getSessionTranscript`, `getSessionTranscriptSync`, `s.transcript()`, `s.transcriptSync()` | `getSessionLogPage(projectId, sessionId, query)` or `s.log(query)`. |
+| The types `SessionTranscript`, `SessionTranscriptMessage`, `SessionTranscriptToolCall`, `SessionTranscriptSource`, `SessionTranscriptSyncEnvelope`, `SessionTranscriptSyncMessage` | `SessionLogPage`, `SessionLogMessage`, `SessionLogBlock`. |
+| `loadSessionTranscriptMessages` | `loadSessionExportMessages(sessionId, kortixSessionScope?)`: the session log first, else the runtime. |
+| `isPaintableSavedCopy`, `savedCopyEmptyRoot` | No replacement. `readSavedSessionCopy` returns `empty`. |
+| `findActiveTranscriptShare`, `getPublicSessionShare`, `getPublicSessionShareMessages`, `PublicSessionShareError`, `PublicSessionShareMeta`, `PublicSessionTranscript`, `PublicSessionTranscriptMessage`, `PublicSessionTranscriptToolCall` | No replacement. The API removed public transcript sharing. |
+| `saveSessionToIDB`, `flushIDBWrites`, `loadSessionFromIDB`, `loadAllSessionIdsFromIDB`, `pruneIDBCache` | No replacement. They stored nothing. |
+| `FeatureFlagKey` member `session_transcript_history` | No replacement. Every session saves its history in the session log. |
+
+Four shapes changed with them. The snapshot's `transcript` leg is always `{ known: true, requested: false }`, and `getSessionOpenBundle` takes no `transcript` option. `SavedCopyStore` reads and writes a `SessionLogPage`. `SavedSessionCopy` has no `envelope`. `useSessionSync`'s `mirror` option accepts only `null`.
+
 ### Removed in 0.15.0
 
 0.15.0 is a breaking release. It removed these subpaths and names. Every session runs pi, so nothing removed here reached a route a current box serves.
@@ -9342,10 +9363,8 @@ Each name below carries `@deprecated` and resolves until a later major version. 
 | --- | --- |
 | `wireIdClock`, `wireIdClockAt`, `wireIdClockDelta`, `maxWireIdClock`, `isWireIdAheadOf`, `newestWireIdClock`, `mintWireMessageIdAbove`, `MintWireMessageIdAboveInput`, `MintedWireMessageId`, `WIRE_ID_TIME_SCALE`, `WIRE_ID_TIME_MASK`, `WIRE_ID_CLOCK_TOLERANCE`, `WIRE_ID_BACKDATE_MS` | `mintWireMessageId` and `WIRE_MESSAGE_ID`, which stay current. Message ids are opaque. |
 | `s.runtime` | The session methods: `messages`, `pendingRequests`, `answerPermission`, `answerQuestion`, `compact`, `send`, `abort`, `rewind`. |
-| `s.transcript()` · `s.transcriptSync()` | `s.log(query)`. |
 | `s.pending()` | `s.pendingRequests()`. |
 | `p.sessions.ensureWarm()` · `p.sessions.claimWarm(input)` | `p.sessions.create()`. They reject with `ENDPOINT_RETIRED`. |
-| `findActiveTranscriptShare`, `getPublicSessionShare`, `getPublicSessionShareMessages`, `PublicSessionShareError`, `PublicSessionShareMeta`, `PublicSessionTranscript`, `PublicSessionTranscriptMessage`, `PublicSessionTranscriptToolCall` | No replacement. The API removed public transcript sharing; every call returns `404`. |
 | `clientSource` (a `createKortix` option) | Remove it. It is inert. Send `clientVersion` to identify a release. |
 | `p.updateExperimentalFeature` · `updateExperimentalFeature` · `ExperimentalFeatureKey` · `ExperimentalFeatureView` | `p.updateFeatureFlag` · `updateFeatureFlag` · `FeatureFlagKey` · `FeatureFlagView` |
 | `p.connectors.setAuthorizationStrategy` · `setConnectorAuthorizationStrategy` | Remove the call. It changes nothing. |

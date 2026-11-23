@@ -1313,17 +1313,13 @@
           "name": "Ziele",
           "description": "Gib einem Agenten ein Ziel, für das er verantwortlich bleibt, bis eine unabhängige Prüfung das Ergebnis bestätigt. Er plant, arbeitet, wartet, fragt bei Personen nach und speichert seinen Stand in einem Ordner „Goals“ unter Dateien. Erfordert aktivierte Volumes und Schleifen."
         },
-        "workspace_volume": {
-          "name": "Zustandslose Sandboxes",
-          "description": "Jede Session behält nur /workspace, auf einem eigenen Volume. Eine Sandbox, die eine Stunde gestoppt ist, wird gelöscht, und beim nächsten Öffnen startet eine neue mit denselben Dateien und derselben Unterhaltung. Programme aus der alten Sandbox laufen nicht mehr. Kortix aktiviert es pro Workspace."
-        },
         "email_channel": {
           "name": "E-Mail-Kanal",
           "description": "Gib dem Agenten ein E-Mail-Postfach bei Resend: eingehende Mails starten und setzen Sessions fort, und der Agent liest, antwortet und sendet aus dem Postfach. Bring deinen eigenen Resend-API-Schlüssel und deine Domain mit."
         },
         "chat": {
-          "name": "Channels",
-          "description": "Channels mit Kortix, wie in Slack: Jede Nachricht ist ein Thread, die neueste Antwort von Kortix steht darunter, Kortix kann Threads starten, und du teilst Channels mit anderen. Ersetzt die Sitzungsliste in der Seitenleiste."
+          "name": "Spaces im Slack-Stil",
+          "description": "Nutze Channels und Direktnachrichten im Slack-Stil, in denen jede Nachricht einen Thread startet. Wechselt die Seitenleiste zum Chat-Layout. Unabhängig von Spaces zum Gruppieren von Sitzungen, Dateien und Tabs."
         },
         "session_groups": {
           "name": "Spaces",
@@ -1351,11 +1347,11 @@
         },
         "chat_front": {
           "name": "Spaces-Router",
-          "description": "Mit Spaces ist der Agent, mit dem du in einem Thread chattest, ein Router: Kurze Aufgaben erledigt er selbst (eine Antwort, ein kurzer Text, ein Blick in die Thread-Dateien), längere gibt er an die Agents des Space ab. Er antwortet wie ein Mensch, in kurzen Nachrichten. Ein Agent speichert sein vollständiges Ergebnis als Datei im Thread, und der Router verlinkt diese Datei, statt sie abzutippen. „Arbeit anzeigen“ unter einer Nachricht öffnet die Arbeit dahinter. Braucht My Kortix in kortix.yaml."
+          "description": "Mit Spaces im Slack-Stil ist der Agent, mit dem du in einem Thread chattest, ein Router: Kurze Aufgaben erledigt er selbst (eine Antwort, ein kurzer Text, ein Blick in die Thread-Dateien), längere gibt er an die Agents des Space ab. Er antwortet wie ein Mensch, in kurzen Nachrichten. Ein Agent speichert sein vollständiges Ergebnis als Datei im Thread, und der Router verlinkt diese Datei, statt sie abzutippen. „Arbeit anzeigen“ unter einer Nachricht öffnet die Arbeit dahinter. Braucht My Kortix in kortix.yaml."
         },
         "spaces_proactive": {
           "name": "Spaces-Proactive",
-          "description": "Mit Spaces kann ein Space sich selbst beobachten: Schalten Sie in seinen Details Proaktiv ein, und ein Agent liest, was dort passiert (fertige Threads, offene Fragen, neue Mitglieder), und schreibt nur dann in den Chat, wenn es wichtig ist: ein Ergebnis, das sich zu teilen lohnt, eine Entscheidung, die Sie treffen müssen, oder etwas Überfälliges. Er kann auch einen Thread starten, der die Arbeit erledigt. Optional ein tägliches Briefing um 9:00."
+          "description": "Mit Spaces im Slack-Stil kann ein Space sich selbst beobachten: Schalten Sie in seinen Details Proaktiv ein, und ein Agent liest, was dort passiert (fertige Threads, offene Fragen, neue Mitglieder), und schreibt nur dann in den Chat, wenn es wichtig ist: ein Ergebnis, das sich zu teilen lohnt, eine Entscheidung, die Sie treffen müssen, oder etwas Überfälliges. Er kann auch einen Thread starten, der die Arbeit erledigt. Optional ein tägliches Briefing um 9:00."
         },
         "program_agents": {
           "name": "Programm-Agenten",
@@ -1372,15 +1368,19 @@
         "calendar": {
           "name": "Kalender",
           "description": "Ein gemeinsamer Kalender für Menschen und Agenten: Einträge mit Datum, Beteiligten und Kommentaren, neben den geplanten Triggern und Loops. Erwähne jemanden mit @, um ihn zu benachrichtigen. Agenten nutzen `kortix calendar`."
+        },
+        "review_swipe": {
+          "name": "Review-Karten",
+          "description": "„Braucht dich“ auf der Review-Seite öffnet sich als Kartenstapel: ein Eintrag pro Karte. Nach rechts wischen genehmigt oder mergt, nach links schickt es mit deinem Änderungswunsch an den Agenten zurück."
         }
       },
       "channelsSwitch": {
-        "onTitle": "Spaces für {project} einschalten?",
-        "onBody": "Alle in diesem Workspace bekommen Spaces statt der Sitzungsliste. Alle bestehenden Sitzungen ziehen nach #general um. Du kannst es jederzeit ausschalten; nichts wird gelöscht.",
+        "onTitle": "Spaces im Slack-Stil für {project} einschalten?",
+        "onBody": "Alle in diesem Workspace bekommen Spaces im Slack-Stil statt der Sitzungsliste. Alle bestehenden Sitzungen ziehen nach #general um. Du kannst es jederzeit ausschalten; nichts wird gelöscht.",
         "drive": "Auch Drive einschalten, damit Spaces Dateien bekommen.",
         "turnOn": "Einschalten",
         "cancel": "Abbrechen",
-        "offTitle": "Spaces ausschalten?",
+        "offTitle": "Spaces im Slack-Stil ausschalten?",
         "offBody": "Spaces, Speicher, Dateien und Links bleiben gespeichert. Die Sitzungsliste kommt für alle zurück.",
         "turnOff": "Ausschalten"
       },
@@ -2260,6 +2260,10 @@
     "panel": {
       "outputNew": "Neu",
       "outputUpdated": "Aktualisiert",
+      "backgroundTasks": "Hintergrundaufgaben",
+      "finished": "Erledigt",
+      "finishedCount": "{count} erledigt",
+      "running": "Läuft",
       "resizePane": "Bereichsgröße ändern"
     }
   },
@@ -2462,7 +2466,8 @@
     "collapseQueue": "Wartende Nachrichten einklappen",
     "expandQueue": "Wartende Nachrichten ausklappen",
     "myKortixRoutes": "Leitet jede Aufgabe an den passenden Agenten",
-    "chatInputReset": "Reset"
+    "chatInputReset": "Reset",
+    "queuedDisconnected": "Diese Sitzung hat die Verbindung zu Kortix verloren. Starte eine neue Sitzung, um weiterzumachen."
   },
   "billing": {
     "plan": {
@@ -3090,7 +3095,7 @@
     "unified": {
       "welcome": "Willkommen bei {name}",
       "email": "E-Mail",
-      "emailPlaceholder": "Deine E-Mail-Adresse",
+      "emailPlaceholder": "E-Mail-Adresse eingeben…",
       "password": "Passwort",
       "showPassword": "Passwort anzeigen",
       "hidePassword": "Passwort ausblenden",
@@ -3156,7 +3161,7 @@
         "title": "Passwort zurücksetzen",
         "description": "Wir senden dir einen Link zum Zurücksetzen.",
         "email": "E-Mail",
-        "emailPlaceholder": "Ihre E-Mail-Adresse",
+        "emailPlaceholder": "E-Mail-Adresse eingeben…",
         "sending": "Link wird gesendet …",
         "submit": "Link zum Zurücksetzen senden"
       },
@@ -3196,6 +3201,13 @@
       "errorTitle": "Anmeldung nicht möglich",
       "errorBody": "Melde dich in einem Browser-Tab bei Kortix an und öffne dieses Panel dann erneut.",
       "signIn": "Anmelden"
+    },
+    "story": {
+      "label": "Über Kortix CompanyOS",
+      "outcome": "Gib ein Ergebnis vor. KI-Agenten arbeiten rund um die Uhr daran.",
+      "repo": "Deine Agenten, Skills und dein Wissen in einem Repo, das dir gehört.",
+      "approve": "Agenten erledigen die Arbeit. Du gibst frei, was live geht.",
+      "worksWith": "Funktioniert mit den Tools, die dein Team schon nutzt"
     }
   },
   "onboarding": {
@@ -3436,7 +3448,18 @@
         "completed": "Erledigt",
         "failed": "Nicht abgeschlossen",
         "stopped": "Gestoppt"
-      }
+      },
+      "card": {
+        "session": "Sitzung",
+        "copyId": "Sitzungs-ID kopieren",
+        "openNewTab": "In neuem Tab öffnen",
+        "model": "Modell",
+        "runsAs": "Läuft als",
+        "inline": "Lief in dieser Sitzung und hat keine eigene Sitzung zum Öffnen."
+      },
+      "notStarted": "Nicht gestartet",
+      "notStartedSentence": "Kortix konnte diesen Kollegen nicht starten. Es lief nichts.",
+      "policyBlocked": "Durch die Richtlinie dieses Projekts blockiert. Bitte einen Projekt-Admin, es zu erlauben."
     }
   },
   "agentRunLimit": {
@@ -21558,6 +21581,37 @@
     "reviewPane": {
       "emptyTitle": "Wähle einen Eintrag",
       "emptyDescription": "Die Details öffnen sich hier. Mit J und K bewegst du dich durch die Liste."
+    },
+    "reviewDeck": {
+      "label": "Review-Karten",
+      "remaining": "{count, plural, one {# Karte übrig} other {# Karten übrig}}",
+      "merge": "Mergen",
+      "close": "Schließen",
+      "approve": "Genehmigen",
+      "deny": "Ablehnen",
+      "dismiss": "Verwerfen",
+      "yes": "Ja",
+      "no": "Nein",
+      "skip": "Überspringen",
+      "open": "Öffnen",
+      "undo": "Rückgängig",
+      "staged": "{verdict}: {title}",
+      "needsChoice": "Öffnen, um eine Antwort zu wählen",
+      "noVerdict": "Du kannst hier nicht entscheiden. Öffne es für Details.",
+      "emptyTitle": "Alles erledigt",
+      "emptyDescription": "Gerade wartet nichts auf dich.",
+      "highRisk": "Hohes Risiko",
+      "files": "{count, plural, one {# Datei} other {# Dateien}}",
+      "conflicts": "{count, plural, one {# Konflikt} other {# Konflikte}}",
+      "items": "{count, plural, one {# Eintrag} other {# Einträge}}",
+      "showCards": "Als Karten zeigen",
+      "showList": "Als Liste zeigen",
+      "sendBack": "Zurückschicken",
+      "whatShouldChange": "Was soll sich ändern?",
+      "sendToAgent": "An Agenten senden",
+      "cancel": "Abbrechen",
+      "reviews": "Reviews",
+      "questions": "Fragen"
     }
   },
   "commandPalette": {
@@ -22371,6 +22425,8 @@
     "redirectsTo": "Leitet dich zurück zu",
     "workspaceLabel": "Workspace",
     "workspaceHint": "{client} erreicht nur diesen Workspace.",
+    "workspaceAll": "Alle meine Workspaces",
+    "workspaceAllHint": "{client} handelt als du in jedem Workspace, den du öffnen kannst, jetzt und später, und kann neue Workspaces erstellen. Wähle das nur für eine App, die du selbst betreibst.",
     "scopes": {
       "profile": "Dein Profil ansehen",
       "email": "Deine E-Mail-Adresse ansehen",
@@ -26404,6 +26460,7 @@
       },
       "workingFor": "arbeitet · {elapsed}",
       "runsAs": "läuft als {agent}",
+      "stateCount": "{count} {state}",
       "teamRole": "Rolle nur für diese Sitzung",
       "attention": {
         "question": "Hat eine Frage an dich",

@@ -1790,6 +1790,20 @@ describe('pi extensions', () => {
     expect(child).toContain("Today's date: Tue Mar 10 2026 (")
   })
 
+  test('a name on a subagent in the same session is its label: the call runs, and the result says the name does not address it', async () => {
+    const r = await boot({
+      script: [{ tool: 'agent', args: { description: 'Size demand', prompt: 'size it', subagent_type: 'general', name: 'market-scout', session: 'same' } }, { text: 'child done' }, { text: 'parent done' }],
+    })
+    await promptAndSettle(r, 'delegate it')
+    const page = (await r.bearer(`/kortix/runtime/messages/${r.service.runtime()!.rootId}`).then((res) => res.json())) as WirePage
+    const call = toolParts(page, 'agent')[0]!
+    expect(call.state.status).toBe('completed')
+    expect(JSON.stringify(call.state)).toContain('child done')
+    expect(JSON.stringify(call.state)).toContain('market-scout is a label here')
+    expect(call.state.metadata).toMatchObject({ session: 'same' })
+    expect(call.state.metadata?.name).toBeUndefined()
+  })
+
   test('every agent is told its session ids; a separate subagent its parent session, a subagent inside the session the main conversation', async () => {
     const session = '11111111-1111-4111-8111-111111111111'
     const parent = '22222222-2222-4222-8222-222222222222'
@@ -5013,6 +5027,45 @@ describe('pi model list: neither boot nor an env push waits for it', () => {
       release()
     }
     await waitFor(() => rt.selectedModel()?.contextWindow === 200_000)
+  })
+
+  test('a Claude subscription turn right after a reconfigure runs in Claude Code, not as a gateway model', async () => {
+    // A stand-in `claude` that only records that Claude Code was started.
+    const bin = mkdtempSync(join(tmpdir(), 'pi-fake-claude-'))
+    const started = join(bin, 'started')
+    const claude = join(bin, 'claude')
+    writeFileSync(claude, `#!/bin/sh\ntouch '${started}'\nexit 1\n`)
+    chmodSync(claude, 0o755)
+    const r = await boot({ script: [{ text: 'answered by the gateway' }], env: { KORTIX_CLAUDE_PATH: claude } })
+    const rt = r.service.runtime()!
+    const secret = 'PI_TEST_RECONFIGURE_SECRET'
+    const previous = process.env[secret]
+    // The refresh a reconfigure starts stays open: the turn comes before it ends, as on a new session.
+    const release = gateway.holdCatalog()
+    try {
+      const before = gateway.requestedModels.length
+      // The push the API sends before a new session's first prompt, with a project secret that changed.
+      const pushed = await envApp(r).request('/kortix/env', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${TOKEN}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ revision: 'rev-2', env: { [secret]: 'value' }, names: [secret], refreshModels: true }),
+      })
+      expect(pushed.status).toBe(200)
+      const accepted = await r.user(`/session/${rt.rootId}/prompt_async`, {
+        method: 'POST',
+        body: JSON.stringify({ parts: [{ type: 'text', text: 'hi' }], model: { providerID: 'claude-agent', modelID: 'haiku' } }),
+      })
+      expect(accepted.status).toBe(204)
+      await waitFor(() => existsSync(started) || gateway.requestedModels.length > before)
+      await waitFor(() => !rt.busy())
+      expect(gateway.requestedModels.slice(before)).toEqual([])
+      expect(existsSync(started)).toBe(true)
+      expect(rt.selectedModel()).toMatchObject({ providerID: 'claude-agent', modelID: 'haiku' })
+    } finally {
+      release()
+      if (previous === undefined) delete process.env[secret]
+      else process.env[secret] = previous
+    }
   })
 })
 

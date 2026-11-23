@@ -1313,17 +1313,13 @@
           "name": "Objetivos",
           "description": "Dê a um agente um objetivo pelo qual ele responde até que uma verificação independente confirme o resultado. Ele planeja, trabalha, espera, cobra as pessoas e guarda seu estado em uma pasta Goals em Arquivos. Requer Volumes e Ciclos ativados."
         },
-        "workspace_volume": {
-          "name": "Sandboxes sem estado",
-          "description": "Cada sessão mantém apenas o /workspace, em um volume próprio. Uma sandbox parada por uma hora é excluída, e a próxima abertura inicia uma nova com os mesmos arquivos e a mesma conversa. Os programas da sandbox anterior não estão mais em execução. A Kortix ativa por espaço de trabalho."
-        },
         "email_channel": {
           "name": "Canal de e-mail",
           "description": "Dê ao agente uma caixa de entrada no Resend: e-mails recebidos iniciam e continuam sessões, e o agente lê, responde e envia a partir da caixa. Use sua própria chave de API e domínio do Resend."
         },
         "chat": {
-          "name": "Canais",
-          "description": "Canais com o Kortix, como no Slack: cada mensagem é um thread, a resposta mais recente do Kortix aparece abaixo, o Kortix pode iniciar threads e você compartilha canais com outras pessoas. Substitui a lista de sessões na barra lateral."
+          "name": "Espaços estilo Slack",
+          "description": "Use canais e mensagens diretas no estilo Slack, onde cada mensagem inicia um thread. Muda a barra lateral para o layout de chat. Independente de Espaços, que agrupa sessões, arquivos e abas."
         },
         "session_groups": {
           "name": "Espaços",
@@ -1351,11 +1347,11 @@
         },
         "chat_front": {
           "name": "Spaces-Router",
-          "description": "Com Spaces ativado, o agente com quem você conversa numa thread é um roteador: ele faz sozinho o trabalho rápido (uma resposta, um texto curto, uma olhada nos arquivos da thread) e passa o trabalho mais longo aos agentes do espaço. Ele responde como uma pessoa, em mensagens curtas. Um agente salva o resultado completo como arquivo na thread, e o roteador vincula esse arquivo em vez de redigitá-lo. “Mostrar trabalho” abaixo de uma mensagem abre o trabalho por trás dela. Requer My Kortix ativado em kortix.yaml."
+          "description": "Com Espaços estilo Slack ativados, o agente com quem você conversa numa thread é um roteador: ele faz sozinho o trabalho rápido (uma resposta, um texto curto, uma olhada nos arquivos da thread) e passa o trabalho mais longo aos agentes do espaço. Ele responde como uma pessoa, em mensagens curtas. Um agente salva o resultado completo como arquivo na thread, e o roteador vincula esse arquivo em vez de redigitá-lo. “Mostrar trabalho” abaixo de uma mensagem abre o trabalho por trás dela. Requer My Kortix ativado em kortix.yaml."
         },
         "spaces_proactive": {
           "name": "Spaces-Proactive",
-          "description": "Com os Espaços ativados, um espaço pode vigiar a si mesmo: ative Proativo nos detalhes dele, e um agente lê o que acontece ali (threads concluídas, perguntas em aberto, pessoas que entram) e escreve no chat só quando importa: um resultado que vale compartilhar, uma decisão que você precisa tomar ou algo atrasado. Ele também pode iniciar uma thread que faz o trabalho. Resumo diário opcional às 9:00."
+          "description": "Com os Espaços estilo Slack ativados, um espaço pode vigiar a si mesmo: ative Proativo nos detalhes dele, e um agente lê o que acontece ali (threads concluídas, perguntas em aberto, pessoas que entram) e escreve no chat só quando importa: um resultado que vale compartilhar, uma decisão que você precisa tomar ou algo atrasado. Ele também pode iniciar uma thread que faz o trabalho. Resumo diário opcional às 9:00."
         },
         "program_agents": {
           "name": "Agentes de programa",
@@ -1372,15 +1368,19 @@
         "calendar": {
           "name": "Calendário",
           "description": "Um calendário compartilhado para pessoas e agentes: itens com data, participantes e comentários, ao lado dos gatilhos e Loops agendados. Mencione alguém com @ para notificá-lo. Os agentes usam `kortix calendar`."
+        },
+        "review_swipe": {
+          "name": "Cartões de revisão",
+          "description": "«Precisa de você» na página de revisão abre como uma pilha de cartões: um item por cartão. Deslize para a direita para aprovar ou mesclar, para a esquerda para devolver ao agente com o que deve mudar."
         }
       },
       "channelsSwitch": {
-        "onTitle": "Ativar Espaços para {project}?",
-        "onBody": "Todos neste espaço de trabalho recebem Espaços no lugar da lista de sessões. Todas as sessões existentes vão para #general. Você pode desativar quando quiser; nada é excluído.",
+        "onTitle": "Ativar Espaços estilo Slack para {project}?",
+        "onBody": "Todos neste espaço de trabalho recebem Espaços estilo Slack no lugar da lista de sessões. Todas as sessões existentes vão para #general. Você pode desativar quando quiser; nada é excluído.",
         "drive": "Ativar também o Drive, para que os espaços tenham Arquivos.",
         "turnOn": "Ativar",
         "cancel": "Cancelar",
-        "offTitle": "Desativar Espaços?",
+        "offTitle": "Desativar Espaços estilo Slack?",
         "offBody": "Espaços, memória, arquivos e links continuam salvos. A lista de sessões volta para todos.",
         "turnOff": "Desativar"
       },
@@ -2260,6 +2260,10 @@
     "panel": {
       "outputNew": "Novo",
       "outputUpdated": "Atualizado",
+      "backgroundTasks": "Tarefas em segundo plano",
+      "finished": "Concluídas",
+      "finishedCount": "{count} concluídas",
+      "running": "Em andamento",
       "resizePane": "Redimensionar painel"
     }
   },
@@ -2462,7 +2466,8 @@
     "collapseQueue": "Recolher mensagens em espera",
     "expandQueue": "Expandir mensagens em espera",
     "myKortixRoutes": "Envia cada tarefa ao agente certo",
-    "chatInputReset": "Reset"
+    "chatInputReset": "Reset",
+    "queuedDisconnected": "Esta sessão perdeu a conexão com o Kortix. Inicie uma nova sessão para continuar."
   },
   "billing": {
     "plan": {
@@ -3090,7 +3095,7 @@
     "unified": {
       "welcome": "Bem-vindo ao {name}",
       "email": "E-mail",
-      "emailPlaceholder": "Seu endereço de e-mail",
+      "emailPlaceholder": "Digite seu endereço de e-mail…",
       "password": "Senha",
       "showPassword": "Mostrar senha",
       "hidePassword": "Ocultar senha",
@@ -3156,7 +3161,7 @@
         "title": "Redefina sua senha",
         "description": "Enviaremos um link de redefinição.",
         "email": "E-mail",
-        "emailPlaceholder": "Seu endereço de e-mail",
+        "emailPlaceholder": "Digite seu endereço de e-mail…",
         "sending": "Enviando link…",
         "submit": "Enviar link de redefinição"
       },
@@ -3196,6 +3201,13 @@
       "errorTitle": "Não foi possível iniciar sessão",
       "errorBody": "Inicia sessão no Kortix num separador do navegador e volta a abrir este painel.",
       "signIn": "Entrar"
+    },
+    "story": {
+      "label": "Sobre o Kortix CompanyOS",
+      "outcome": "Defina um resultado. Agentes de IA trabalham nele 24/7.",
+      "repo": "Seus agentes, skills e memória em um repositório que é seu.",
+      "approve": "Os agentes fazem o trabalho. Você aprova o que vai ao ar.",
+      "worksWith": "Funciona com as ferramentas que sua equipe já usa"
     }
   },
   "onboarding": {
@@ -3436,7 +3448,18 @@
         "completed": "Concluído",
         "failed": "Não terminou",
         "stopped": "Parado"
-      }
+      },
+      "card": {
+        "session": "Sessão",
+        "copyId": "Copiar ID da sessão",
+        "openNewTab": "Abrir em nova aba",
+        "model": "Modelo",
+        "runsAs": "Executa como",
+        "inline": "Executado nesta sessão, por isso não tem uma sessão própria para abrir."
+      },
+      "notStarted": "Não iniciou",
+      "notStartedSentence": "O Kortix não conseguiu iniciar este colega. Nada foi executado.",
+      "policyBlocked": "Bloqueado pela política deste projeto. Peça a um administrador do projeto para permitir."
     }
   },
   "agentRunLimit": {
@@ -21558,6 +21581,37 @@
     "reviewPane": {
       "emptyTitle": "Selecione um item",
       "emptyDescription": "Os detalhes abrem aqui. Pressione J e K para percorrer a lista."
+    },
+    "reviewDeck": {
+      "label": "Cartões de revisão",
+      "remaining": "{count, plural, one {# cartão restante} other {# cartões restantes}}",
+      "merge": "Mesclar",
+      "close": "Fechar",
+      "approve": "Aprovar",
+      "deny": "Negar",
+      "dismiss": "Dispensar",
+      "yes": "Sim",
+      "no": "Não",
+      "skip": "Pular",
+      "open": "Abrir",
+      "undo": "Desfazer",
+      "staged": "{verdict}: {title}",
+      "needsChoice": "Abra para escolher uma resposta",
+      "noVerdict": "Você não pode decidir isto. Abra para ver os detalhes.",
+      "emptyTitle": "Tudo em dia",
+      "emptyDescription": "Nada precisa de você agora.",
+      "highRisk": "Risco alto",
+      "files": "{count, plural, one {# arquivo} other {# arquivos}}",
+      "conflicts": "{count, plural, one {# conflito} other {# conflitos}}",
+      "items": "{count, plural, one {# item} other {# itens}}",
+      "showCards": "Mostrar como cartões",
+      "showList": "Mostrar como lista",
+      "sendBack": "Devolver",
+      "whatShouldChange": "O que deve mudar?",
+      "sendToAgent": "Enviar ao agente",
+      "cancel": "Cancelar",
+      "reviews": "Revisões",
+      "questions": "Perguntas"
     }
   },
   "commandPalette": {
@@ -22371,6 +22425,8 @@
     "redirectsTo": "Leva você de volta para",
     "workspaceLabel": "Espaço de trabalho",
     "workspaceHint": "{client} acessa somente este espaço de trabalho.",
+    "workspaceAll": "Todos os meus espaços de trabalho",
+    "workspaceAllHint": "{client} age como você em todos os espaços de trabalho que você pode abrir, agora e depois, e pode criar novos espaços de trabalho. Escolha isto apenas para um app que você mesmo usa.",
     "scopes": {
       "profile": "Ver seu perfil",
       "email": "Ver seu endereço de e-mail",
@@ -26404,6 +26460,7 @@
       },
       "workingFor": "trabalhando · {elapsed}",
       "runsAs": "executa como {agent}",
+      "stateCount": "{count} {state}",
       "teamRole": "Função só para esta sessão",
       "attention": {
         "question": "Tem uma pergunta para você",

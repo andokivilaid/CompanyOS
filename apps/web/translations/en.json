@@ -1133,17 +1133,13 @@
           "name": "Goals",
           "description": "Give an agent an objective it owns until an independent check confirms the outcome. It plans, works, waits, follows up with people, and keeps its state in a Goals folder in Files. Needs Volumes and Loops on."
         },
-        "workspace_volume": {
-          "name": "Stateless sandboxes",
-          "description": "Every session keeps only /workspace, on its own volume. A sandbox stopped for an hour is deleted, and the next open starts a new one with the same files and conversation. Programs that ran in the old sandbox are not running. Kortix enables it per workspace."
-        },
         "email_channel": {
           "name": "Email channel",
           "description": "Give the agent an email inbox on Resend: inbound mail starts and continues sessions, and the agent reads, replies and sends from the inbox. Bring your own Resend API key and domain."
         },
         "chat": {
-          "name": "Channels",
-          "description": "Channels with Kortix, the way Slack works: every message is a thread, Kortix's newest reply shows under it, Kortix can start threads, and you share channels with people. Replaces the session list in the sidebar."
+          "name": "Slack-style Spaces",
+          "description": "Use Slack-style channels and direct messages, where every message starts a thread. Switches the sidebar to the chat layout. Separate from Spaces, which groups sessions, files and tabs."
         },
         "session_groups": {
           "name": "Spaces",
@@ -1171,11 +1167,11 @@
         },
         "chat_front": {
           "name": "Spaces-Router",
-          "description": "With Spaces on, the agent you chat with in a thread is a router: it does quick work itself (an answer, a short text, a look at the thread files) and hands longer work to the Space's agents. It writes back like a person, in short messages. An agent saves its full result as a file in the thread, and the router links that file instead of retyping it. Show work under a message opens the work behind it. Needs My Kortix on in kortix.yaml."
+          "description": "With Slack-style Spaces on, the agent you chat with in a thread is a router: it does quick work itself (an answer, a short text, a look at the thread files) and hands longer work to the Space's agents. It writes back like a person, in short messages. An agent saves its full result as a file in the thread, and the router links that file instead of retyping it. Show work under a message opens the work behind it. Needs My Kortix on in kortix.yaml."
         },
         "spaces_proactive": {
           "name": "Spaces-Proactive",
-          "description": "With Spaces on, a space can watch itself: turn on Proactive in its details, and an agent reads what happens there (finished threads, questions left open, people who join) and writes in the chat only when it matters: a result worth sharing, a decision you need to make, or something overdue. It can also start a thread that does the work. Optional daily brief at 9:00."
+          "description": "With Slack-style Spaces on, a space can watch itself: turn on Proactive in its details, and an agent reads what happens there (finished threads, questions left open, people who join) and writes in the chat only when it matters: a result worth sharing, a decision you need to make, or something overdue. It can also start a thread that does the work. Optional daily brief at 9:00."
         },
         "program_agents": {
           "name": "Program agents",
@@ -1192,15 +1188,19 @@
         "calendar": {
           "name": "Calendar",
           "description": "A shared calendar for people and agents: dated items with the people on them and comments, beside the scheduled triggers and Loops. Mention someone with @ to notify them. Agents use `kortix calendar`."
+        },
+        "review_swipe": {
+          "name": "Review cards",
+          "description": "The Review page's Needs you opens as a swipe deck: one item per card. Swipe right to approve or merge, left to send it back to the agent with what should change."
         }
       },
       "channelsSwitch": {
-        "onTitle": "Turn on Spaces for {project}?",
-        "onBody": "Everyone in this workspace gets Spaces instead of the session list. All existing sessions move into #general. You can turn it off any time; nothing is deleted.",
+        "onTitle": "Turn on Slack-style Spaces for {project}?",
+        "onBody": "Everyone in this workspace gets Slack-style Spaces instead of the session list. All existing sessions move into #general. You can turn it off any time; nothing is deleted.",
         "drive": "Turn on Drive too, so spaces get Files.",
         "turnOn": "Turn on",
         "cancel": "Cancel",
-        "offTitle": "Turn off Spaces?",
+        "offTitle": "Turn off Slack-style Spaces?",
         "offBody": "Spaces, memory, files and links stay saved. The session list comes back for everyone.",
         "turnOff": "Turn off"
       },
@@ -2260,6 +2260,10 @@
     "panel": {
       "outputNew": "New",
       "outputUpdated": "Updated",
+      "backgroundTasks": "Background tasks",
+      "finished": "Finished",
+      "finishedCount": "{count} finished",
+      "running": "Running",
       "resizePane": "Resize pane"
     }
   },
@@ -2462,7 +2466,8 @@
     "hintSettings": "Press {modifier}, to open settings",
     "hintCompact": "Ask to compact the session when it gets long",
     "myKortixRoutes": "Routes each task to the right agent",
-    "chatInputReset": "Reset"
+    "chatInputReset": "Reset",
+    "queuedDisconnected": "This session lost its connection to Kortix. Start a new session to continue."
   },
   "billing": {
     "plan": {
@@ -3090,7 +3095,7 @@
     "unified": {
       "welcome": "Welcome to {name}",
       "email": "Email",
-      "emailPlaceholder": "Your email address",
+      "emailPlaceholder": "Enter your email address…",
       "password": "Password",
       "showPassword": "Show password",
       "hidePassword": "Hide password",
@@ -3156,7 +3161,7 @@
         "title": "Reset your password",
         "description": "We'll email you a reset link.",
         "email": "Email",
-        "emailPlaceholder": "Your email address",
+        "emailPlaceholder": "Enter your email address…",
         "sending": "Sending link…",
         "submit": "Send reset link"
       },
@@ -3196,6 +3201,13 @@
       "errorTitle": "Couldn't sign in",
       "errorBody": "Sign in to Kortix in a browser tab, then reopen this panel.",
       "signIn": "Sign in"
+    },
+    "story": {
+      "label": "About Kortix CompanyOS",
+      "outcome": "Hand it an outcome. AI agents run it 24/7.",
+      "repo": "Your agents, skills, and memory in one repo you own.",
+      "approve": "Agents do the work. You approve what ships.",
+      "worksWith": "Works with the tools your team already uses"
     }
   },
   "onboarding": {
@@ -3436,7 +3448,18 @@
         "completed": "Done",
         "failed": "Didn’t finish",
         "stopped": "Stopped"
-      }
+      },
+      "card": {
+        "session": "Session",
+        "copyId": "Copy session ID",
+        "openNewTab": "Open in new tab",
+        "model": "Model",
+        "runsAs": "Runs as",
+        "inline": "Ran inside this session, so it has no session of its own to open."
+      },
+      "notStarted": "Didn’t start",
+      "notStartedSentence": "Kortix couldn’t start this colleague. Nothing ran.",
+      "policyBlocked": "Blocked by this project’s policy. Ask a project admin to allow it."
     }
   },
   "agentRunLimit": {
@@ -21603,6 +21626,37 @@
     "reviewPane": {
       "emptyTitle": "Select an item",
       "emptyDescription": "Its details open here. Press J and K to move through the list."
+    },
+    "reviewDeck": {
+      "label": "Review cards",
+      "remaining": "{count, plural, one {# card left} other {# cards left}}",
+      "merge": "Merge",
+      "close": "Close",
+      "approve": "Approve",
+      "deny": "Deny",
+      "dismiss": "Dismiss",
+      "yes": "Yes",
+      "no": "No",
+      "skip": "Skip",
+      "open": "Open",
+      "undo": "Undo",
+      "staged": "{verdict}: {title}",
+      "needsChoice": "Open it to choose an answer",
+      "noVerdict": "You cannot decide this one. Open it for details.",
+      "emptyTitle": "You are all caught up",
+      "emptyDescription": "Nothing needs you right now.",
+      "highRisk": "High risk",
+      "files": "{count, plural, one {# file} other {# files}}",
+      "conflicts": "{count, plural, one {# conflict} other {# conflicts}}",
+      "items": "{count, plural, one {# item} other {# items}}",
+      "showCards": "Show as cards",
+      "showList": "Show as list",
+      "sendBack": "Send back",
+      "whatShouldChange": "What should change?",
+      "sendToAgent": "Send to agent",
+      "cancel": "Cancel",
+      "reviews": "Reviews",
+      "questions": "Questions"
     }
   },
   "commandPalette": {
@@ -22371,6 +22425,8 @@
     "redirectsTo": "Sends you back to",
     "workspaceLabel": "Workspace",
     "workspaceHint": "{client} reaches this workspace only.",
+    "workspaceAll": "All my workspaces",
+    "workspaceAllHint": "{client} acts as you in every workspace you can open, now and later, and can create new workspaces. Choose this only for an app you run yourself.",
     "scopes": {
       "profile": "View your profile",
       "email": "View your email address",
@@ -26404,6 +26460,7 @@
       },
       "workingFor": "working · {elapsed}",
       "runsAs": "runs as {agent}",
+      "stateCount": "{count} {state}",
       "teamRole": "Role for this session only",
       "attention": {
         "question": "Has a question for you",

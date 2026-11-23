@@ -1313,17 +1313,13 @@
           "name": "Циљеви",
           "description": "Дајте агенту циљ за који је одговоран док независна провера не потврди исход. Планира, ради, чека, подсећа људе и чува своје стање у фасцикли Goals у Фајловима. Захтева укључене Volumene и Петље."
         },
-        "workspace_volume": {
-          "name": "Sandboxi bez stanja",
-          "description": "Svaka sesija čuva samo /workspace, na zasebnom volumenu. Sandbox koji je zaustavljen sat vremena se briše, a sledeće otvaranje pokreće novi sa istim fajlovima i razgovorom. Programi iz starog sandboxa više ne rade. Kortix ga uključuje по радном простору."
-        },
         "email_channel": {
           "name": "Kanal e-pošte",
           "description": "Dajte agentu poštansko sanduče na Resend-u: dolazna pošta pokreće i nastavlja sesije, a agent čita, odgovara i šalje iz sandučeta. Koristite sopstveni Resend API ključ i domen."
         },
         "chat": {
-          "name": "Канали",
-          "description": "Канали са Kortix-ом, као у Slack-у: свака порука је нит, најновији одговор Kortix-а стоји испод ње, Kortix може да започне нити, а канале делиш са другима. Замењује листу сесија на бочној траци."
+          "name": "Простори у Slack стилу",
+          "description": "Користи канале и директне поруке у Slack стилу, где свака порука започиње нит. Пребацује бочну траку на изглед ћаскања. Одвојено од Простора који групишу сесије, датотеке и картице."
         },
         "session_groups": {
           "name": "Простори",
@@ -1351,11 +1347,11 @@
         },
         "chat_front": {
           "name": "Spaces-Router",
-          "description": "Када су Spaces укључени, агент са којим разговараш у нити је рутер: брзе послове ради сам (одговор, кратак текст, поглед у фајлове нити), а дуже послове предаје агентима простора. Одговара као особа, кратким порукама. Агент чува цео резултат као фајл у нити, а рутер линкује тај фајл уместо да га преписује. „Прикажи рад“ испод поруке отвара рад иза ње. Потребан је укључен My Kortix у kortix.yaml."
+          "description": "Када су Простори у Slack стилу укључени, агент са којим разговараш у нити је рутер: брзе послове ради сам (одговор, кратак текст, поглед у фајлове нити), а дуже послове предаје агентима простора. Одговара као особа, кратким порукама. Агент чува цео резултат као фајл у нити, а рутер линкује тај фајл уместо да га преписује. „Прикажи рад“ испод поруке отвара рад иза ње. Потребан је укључен My Kortix у kortix.yaml."
         },
         "spaces_proactive": {
           "name": "Spaces-Proactive",
-          "description": "Kada su Prostori uključeni, prostor može sam sebe da prati: uključite Proaktivno u njegovim detaljima, i agent čita šta se tu dešava (završene niti, otvorena pitanja, ljudi koji se pridruže) i piše u čet samo kada je važno: rezultat vredan deljenja, odluka koju treba da donesete ili nešto što kasni. Može i da pokrene nit koja obavlja posao. Opcioni dnevni pregled u 9:00."
+          "description": "Kada su Prostori u Slack stilu uključeni, prostor može sam sebe da prati: uključite Proaktivno u njegovim detaljima, i agent čita šta se tu dešava (završene niti, otvorena pitanja, ljudi koji se pridruže) i piše u čet samo kada je važno: rezultat vredan deljenja, odluka koju treba da donesete ili nešto što kasni. Može i da pokrene nit koja obavlja posao. Opcioni dnevni pregled u 9:00."
         },
         "program_agents": {
           "name": "Programski agenti",
@@ -1372,15 +1368,19 @@
         "calendar": {
           "name": "Kalendar",
           "description": "Zajednički kalendar za ljude i agente: stavke sa datumom, učesnicima i komentarima, pored zakazanih okidača i petlji. Pomeni nekoga sa @ da ga obavestiš. Agenti koriste `kortix calendar`."
+        },
+        "review_swipe": {
+          "name": "Kartice za pregled",
+          "description": "„Čeka tebe“ na stranici Pregled otvara se kao špil kartica: jedna stavka po kartici. Prevuci desno da odobriš ili spojiš, levo da je vratiš agentu sa onim što treba promeniti."
         }
       },
       "channelsSwitch": {
-        "onTitle": "Укључити просторе за {project}?",
-        "onBody": "Сви у овом радном простору добијају Просторе уместо листе сесија. Све постојеће сесије прелазе у #general. Можеш то искључити кад год желиш; ништа се не брише.",
+        "onTitle": "Укључити просторе у Slack стилу за {project}?",
+        "onBody": "Сви у овом радном простору добијају Просторе у Slack стилу уместо листе сесија. Све постојеће сесије прелазе у #general. Можеш то искључити кад год желиш; ништа се не брише.",
         "drive": "Укључи и Drive, да простори добију датотеке.",
         "turnOn": "Укључи",
         "cancel": "Откажи",
-        "offTitle": "Искључити просторе?",
+        "offTitle": "Искључити просторе у Slack стилу?",
         "offBody": "Простори, меморија, датотеке и линкови остају сачувани. Листа сесија се враћа свима.",
         "turnOff": "Искључи"
       },
@@ -2260,6 +2260,10 @@
     "panel": {
       "outputNew": "Ново",
       "outputUpdated": "Ажурирано",
+      "backgroundTasks": "Позадински задаци",
+      "finished": "Завршено",
+      "finishedCount": "{count} завршено",
+      "running": "У току",
       "resizePane": "Промени величину окна"
     }
   },
@@ -2462,7 +2466,8 @@
     "collapseQueue": "Скупи поруке на чекању",
     "expandQueue": "Прошири поруке на чекању",
     "myKortixRoutes": "Сваки задатак шаље правом агенту",
-    "chatInputReset": "Reset"
+    "chatInputReset": "Reset",
+    "queuedDisconnected": "Ova sesija je izgubila vezu sa Kortixom. Pokreni novu sesiju da nastaviš."
   },
   "billing": {
     "plan": {
@@ -3090,7 +3095,7 @@
     "unified": {
       "welcome": "Добродошли у {name}",
       "email": "Имејл",
-      "emailPlaceholder": "Ваша имејл адреса",
+      "emailPlaceholder": "Унеси своју имејл адресу…",
       "password": "Лозинка",
       "showPassword": "Прикажи лозинку",
       "hidePassword": "Сакриј лозинку",
@@ -3156,7 +3161,7 @@
         "title": "Ресетујте лозинку",
         "description": "Послаћемо ти линк за ресетовање.",
         "email": "Е-пошта",
-        "emailPlaceholder": "Ваша адреса е-поште",
+        "emailPlaceholder": "Унеси своју имејл адресу…",
         "sending": "Слање линка…",
         "submit": "Пошаљи линк за ресетовање"
       },
@@ -3196,6 +3201,13 @@
       "errorTitle": "Пријава није успела",
       "errorBody": "Пријавите се на Kortix у картици прегледача, па поново отворите ову таблу.",
       "signIn": "Пријавите се"
+    },
+    "story": {
+      "label": "О Kortix CompanyOS",
+      "outcome": "Задај исход. AI агенти раде на њему 24/7.",
+      "repo": "Твоји агенти, вештине и меморија у једном репозиторијуму који је твој.",
+      "approve": "Агенти раде посао. Ти одобраваш шта излази.",
+      "worksWith": "Ради са алатима које твој тим већ користи"
     }
   },
   "onboarding": {
@@ -3436,7 +3448,18 @@
         "completed": "Готово",
         "failed": "Није завршио",
         "stopped": "Заустављено"
-      }
+      },
+      "card": {
+        "session": "Sesija",
+        "copyId": "Kopiraj ID sesije",
+        "openNewTab": "Otvori u novoj kartici",
+        "model": "Model",
+        "runsAs": "Radi kao",
+        "inline": "Radio je u ovoj sesiji, pa nema svoju sesiju za otvaranje."
+      },
+      "notStarted": "Nije pokrenut",
+      "notStartedSentence": "Kortix nije mogao da pokrene ovog kolegu. Ništa nije pokrenuto.",
+      "policyBlocked": "Blokirano pravilima ovog projekta. Zamoli administratora projekta da to dozvoli."
     }
   },
   "agentRunLimit": {
@@ -21558,6 +21581,37 @@
     "reviewPane": {
       "emptyTitle": "Izaberi stavku",
       "emptyDescription": "Detalji se otvaraju ovde. Pritisni J i K da se krećeš kroz listu."
+    },
+    "reviewDeck": {
+      "label": "Kartice za pregled",
+      "remaining": "{count, plural, one {Preostala # kartica} few {Preostale # kartice} other {Preostalo # kartica}}",
+      "merge": "Spoji",
+      "close": "Zatvori",
+      "approve": "Odobri",
+      "deny": "Odbij",
+      "dismiss": "Odbaci",
+      "yes": "Da",
+      "no": "Ne",
+      "skip": "Preskoči",
+      "open": "Otvori",
+      "undo": "Poništi",
+      "staged": "{verdict}: {title}",
+      "needsChoice": "Otvori da izabereš odgovor",
+      "noVerdict": "Ne možeš da odlučiš o ovome. Otvori za detalje.",
+      "emptyTitle": "Sve je završeno",
+      "emptyDescription": "Trenutno ništa ne čeka na tebe.",
+      "highRisk": "Visok rizik",
+      "files": "{count, plural, one {# fajl} few {# fajla} other {# fajlova}}",
+      "conflicts": "{count, plural, one {# konflikt} few {# konflikta} other {# konflikata}}",
+      "items": "{count, plural, one {# stavka} few {# stavke} other {# stavki}}",
+      "showCards": "Prikaži kao kartice",
+      "showList": "Prikaži kao listu",
+      "sendBack": "Vrati",
+      "whatShouldChange": "Šta treba promeniti?",
+      "sendToAgent": "Pošalji agentu",
+      "cancel": "Otkaži",
+      "reviews": "Pregledi",
+      "questions": "Pitanja"
     }
   },
   "commandPalette": {
@@ -22371,6 +22425,8 @@
     "redirectsTo": "Vraća te na",
     "workspaceLabel": "Радни простор",
     "workspaceHint": "{client} приступа само овом радном простору.",
+    "workspaceAll": "Сви моји радни простори",
+    "workspaceAllHint": "{client} делује као ви у сваком радном простору који можете да отворите, сада и касније, и може да прави нове радне просторе. Изаберите ово само за апликацију коју сами користите.",
     "scopes": {
       "profile": "Преглед твог профила",
       "email": "Преглед твоје адресе е-поште",
@@ -26404,6 +26460,7 @@
       },
       "workingFor": "ради · {elapsed}",
       "runsAs": "ради као {agent}",
+      "stateCount": "{count} {state}",
       "teamRole": "Улога само за ову сесију",
       "attention": {
         "question": "Има питање за тебе",
