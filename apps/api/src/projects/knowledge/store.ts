@@ -11,6 +11,7 @@
  * up to `WRITE_ATTEMPTS` times, then answers 409.
  */
 
+import { childProcessEnv } from '../../config';
 import { validateRef } from '../git-ref';
 import { GitFileRevisionConflictError, commitMultipleFilesToBranch } from '../git/branches';
 import { execFileAsync, refreshMirror, runGitCapture } from '../git/mirror';
@@ -123,7 +124,7 @@ async function readBlob(repoPath: string, sha: string, size: number): Promise<Ui
     cwd: repoPath,
     encoding: 'buffer',
     maxBuffer: size + 1024 * 1024,
-    env: { ...process.env, GIT_TERMINAL_PROMPT: '0' },
+    env: childProcessEnv({ GIT_TERMINAL_PROMPT: '0' }),
   });
   return new Uint8Array(result.stdout as Buffer);
 }
