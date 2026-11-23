@@ -33,6 +33,14 @@ function independentBlobSha(content: string, repoPath: string): string {
   }).trim();
 }
 
+function independentBlobShaBytes(bytes: Uint8Array, repoPath: string): string {
+  return execFileSync('git', ['hash-object', '--stdin'], {
+    cwd: repoPath,
+    input: Buffer.from(bytes),
+    encoding: 'utf8',
+  }).trim();
+}
+
 describe('hashBlobs', () => {
   let repoPath = '';
   let tempDir = '';
@@ -80,5 +88,14 @@ describe('hashBlobs', () => {
   test('produces the same blobs for an empty file list', async () => {
     const blobs = await hashBlobs([], tempDir, repoPath);
     expect(blobs).toEqual([]);
+  });
+
+  test('hashes Uint8Array content matching git hash-object --stdin', async () => {
+    const bytes = new Uint8Array([0x25, 0x50, 0x44, 0x46, 0x2d, 0x31, 0x2e, 0x34, 0x0a, 0x00, 0xff, 0xfe]);
+    const files = [{ path: 'contracts/msa.pdf', content: bytes }];
+    const blobs = await hashBlobs(files, tempDir, repoPath);
+    expect(blobs).toHaveLength(1);
+    expect(blobs[0]!.sha).toBe(independentBlobShaBytes(bytes, repoPath));
+    expect(blobs[0]!.sha).toMatch(/^[0-9a-f]{40}$/);
   });
 });

@@ -3648,6 +3648,31 @@
     },
     {
       "method": "GET",
+      "path": "/v1/projects/:workspaceId/knowledge",
+      "aliasOf": "/v1/workspaces/:workspaceId/knowledge"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/projects/:workspaceId/knowledge",
+      "aliasOf": "/v1/workspaces/:workspaceId/knowledge"
+    },
+    {
+      "method": "PATCH",
+      "path": "/v1/projects/:workspaceId/knowledge",
+      "aliasOf": "/v1/workspaces/:workspaceId/knowledge"
+    },
+    {
+      "method": "DELETE",
+      "path": "/v1/projects/:workspaceId/knowledge",
+      "aliasOf": "/v1/workspaces/:workspaceId/knowledge"
+    },
+    {
+      "method": "GET",
+      "path": "/v1/projects/:workspaceId/knowledge/file",
+      "aliasOf": "/v1/workspaces/:workspaceId/knowledge/file"
+    },
+    {
+      "method": "GET",
       "path": "/v1/projects/:workspaceId/gateway/breakdown",
       "aliasOf": "/v1/workspaces/:workspaceId/gateway/breakdown"
     },
@@ -6480,6 +6505,26 @@
     {
       "method": "GET",
       "path": "/v1/workspaces/:workspaceId/files/search"
+    },
+    {
+      "method": "GET",
+      "path": "/v1/workspaces/:workspaceId/knowledge"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/workspaces/:workspaceId/knowledge"
+    },
+    {
+      "method": "PATCH",
+      "path": "/v1/workspaces/:workspaceId/knowledge"
+    },
+    {
+      "method": "DELETE",
+      "path": "/v1/workspaces/:workspaceId/knowledge"
+    },
+    {
+      "method": "GET",
+      "path": "/v1/workspaces/:workspaceId/knowledge/file"
     },
     {
       "method": "GET",
