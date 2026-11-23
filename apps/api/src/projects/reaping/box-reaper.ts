@@ -354,7 +354,7 @@ interface ReapPass {
 /** One candidate row: ask the provider its real state, then act on it. */
 async function reapOneSandbox(pass: ReapPass, row: ReapCandidate): Promise<void> {
   try {
-    // A legacy `e2b` row (E2B support is discontinued) has no provider to ask:
+    // A row whose provider key is unset on this deployment has no provider to ask:
     // reconcile it locally as removed so its row and billing close.
     if (!isProviderName(row.provider)) {
       await reconcileNotRunningSandbox(pass, row, 'removed');

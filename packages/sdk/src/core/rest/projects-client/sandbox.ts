@@ -66,7 +66,7 @@ export interface SandboxTemplate {
    * routing mode; this array preserves the independent provider truth.
    */
   provider_coverage?: Array<{
-    provider: 'platinum' | 'daytona';
+    provider: 'platinum' | 'daytona' | 'e2b';
     available: boolean;
     snapshot_name: string;
     state: 'active' | 'building' | 'build_failed' | 'removing' | 'unknown' | 'missing' | null;
@@ -90,7 +90,7 @@ export interface SandboxTemplatesResponse {
   items: SandboxTemplate[];
   default_slug: string | null;
   provider_mode?: 'automatic' | 'pinned';
-  selected_provider?: 'platinum' | 'daytona' | null;
+  selected_provider?: 'platinum' | 'daytona' | 'e2b' | null;
   /** Whether the warm pool feature is enabled platform-wide. */
   warm_pool_available?: boolean;
 }
@@ -115,7 +115,7 @@ export interface ProjectSnapshotBuild {
   fixable_by_agent: boolean;
   source: 'session-start' | 'project-create' | 'cr-merge' | 'manual' | 'background' | 'startup' | null;
   /** Exact provider recorded for new builds; null/absent on historical rows. */
-  provider?: 'platinum' | 'daytona' | null;
+  provider?: 'platinum' | 'daytona' | 'e2b' | null;
   started_at: string;
   finished_at: string | null;
 }
@@ -176,7 +176,7 @@ export interface ProjectSnapshotsResponse {
   /** Absent on a degraded/older API response — treat as "no alert". */
   status?: SandboxRuntimeStatus | null;
   provider_mode?: 'automatic' | 'pinned';
-  selected_provider?: 'platinum' | 'daytona' | null;
+  selected_provider?: 'platinum' | 'daytona' | 'e2b' | null;
   /** Whether the warm pool feature is enabled platform-wide (gates the per-row control). */
   warm_pool_available?: boolean;
 }
@@ -199,7 +199,7 @@ export interface ProjectSandboxHealth {
   /** Absent on a degraded/older API response — treat as "no alert". */
   status?: SandboxRuntimeStatus | null;
   provider_mode?: 'automatic' | 'pinned';
-  selected_provider?: 'platinum' | 'daytona' | null;
+  selected_provider?: 'platinum' | 'daytona' | 'e2b' | null;
 }
 
 /** The workspace name of {@link ProjectSandboxHealth}: the same type. */
@@ -210,8 +210,8 @@ export interface RebuildSnapshotResponse {
   slug: string;
   deleted_existing: boolean;
   snapshot_name: string;
-  providers?: Array<'platinum' | 'daytona'>;
-  failed_providers?: Array<'platinum' | 'daytona'>;
+  providers?: Array<'platinum' | 'daytona' | 'e2b'>;
+  failed_providers?: Array<'platinum' | 'daytona' | 'e2b'>;
 }
 
 /**
@@ -346,7 +346,7 @@ export async function buildSandboxTemplate(projectId: string, templateId: string
       status: 'started';
       template_id: string;
       slug: string;
-      providers?: Array<'platinum' | 'daytona'>;
+      providers?: Array<'platinum' | 'daytona' | 'e2b'>;
     }>(
       `/workspaces/${projectId}/sandbox-templates/${templateId}/build`,
       {},

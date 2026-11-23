@@ -17,12 +17,14 @@
  */
 import { describe, expect, test } from 'bun:test';
 
-process.env.ALLOWED_SANDBOX_PROVIDERS = 'platinum,daytona';
+process.env.ALLOWED_SANDBOX_PROVIDERS = 'platinum,daytona,e2b';
 process.env.DAYTONA_API_KEY = 'daytona_test_key';
 process.env.DAYTONA_SERVER_URL = 'https://app.daytona.io/api';
 process.env.DAYTONA_TARGET = 'us';
 process.env.PLATINUM_API_KEY = 'pt_test_key';
 process.env.PLATINUM_API_URL = 'https://api.platinum.test';
+process.env.E2B_API_KEY = 'e2b_test_key';
+process.env.E2B_DOMAIN = 'e2b.dev';
 process.env.KORTIX_URL = 'https://api.example.com';
 process.env.INTERNAL_KORTIX_ENV = 'dev';
 process.env.FRONTEND_URL = 'https://app.example.com';
@@ -35,11 +37,11 @@ const { SANDBOX_TEMPLATE_PROVIDERS } = await import('../../snapshots/provider-co
 
 describe('sandbox provider parity across shared subsystems', () => {
   test('config.KNOWN_PROVIDERS is the single canonical provider list every other list must match', () => {
-    expect(KNOWN_PROVIDERS).toEqual(['platinum', 'daytona']);
+    expect(KNOWN_PROVIDERS).toEqual(['platinum', 'daytona', 'e2b']);
     expect(new Set(SANDBOX_TEMPLATE_PROVIDERS)).toEqual(new Set(KNOWN_PROVIDERS));
   });
 
-  for (const name of ['platinum', 'daytona'] as const) {
+  for (const name of ['platinum', 'daytona', 'e2b'] as const) {
     test(`${name}: runtime registry constructs a provider implementing the full contract`, () => {
       const provider = getProvider(name);
       expect(provider.name).toBe(name);

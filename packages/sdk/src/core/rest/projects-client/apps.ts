@@ -7,7 +7,7 @@ import { unwrap } from './shared';
 import { appsPath, appPath } from './apps-paths';
 
 /** Platinum is the reference App host. Daytona is a legacy fallback. */
-export type AppHostingProvider = 'platinum' | 'daytona';
+export type AppHostingProvider = 'platinum' | 'daytona' | 'e2b';
 export type AppDesiredState = 'running' | 'stopped';
 export type AppAccessMode = 'private' | 'project' | 'restricted' | 'public' | 'password';
 export type AppArtifactKind = 'archive' | 'oci_image';

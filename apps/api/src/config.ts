@@ -45,9 +45,9 @@ process.env.GIT_NO_LAZY_FETCH = '1';
 
 // Platinum is the reference provider. Daytona is a legacy fallback: its
 // removal is scheduled, existing Daytona sessions keep working for now, and it
-// gets no new features and no support guarantee. E2B support is discontinued;
-// the DB enum keeps `e2b` only so legacy rows stay readable.
-export type SandboxProviderName = 'platinum' | 'daytona';
+// gets no new features and no support guarantee. E2B is the local-dev / opt-in
+// cloud provider (API dials sandbox.getHost(port); no cloudflared tunnel).
+export type SandboxProviderName = 'platinum' | 'daytona' | 'e2b';
 type InternalKortixEnv = 'dev' | 'staging' | 'prod' | 'preview';
 
 // ─── Zod Helpers ────────────────────────────────────────────────────────────
@@ -870,6 +870,15 @@ const envSchema = z.object({
     'https://github.com/kortix-ai/CompanyOS/releases/latest/download/capture-update.json',
   ),
 
+  // ── E2B — sandbox provisioning (conditional: required if e2b is enabled) ──
+  // E2B_DOMAIN is the base E2B domain without a protocol. Default: E2B Cloud
+  // (`e2b.dev`). A self-hosted deployment uses its own base domain.
+  // E2B_TEMPLATE is an optional ready fallback template alias/id. Project-
+  // specific snapshots from the snapshot builder override it when present.
+  E2B_API_KEY: optStr,
+  E2B_DOMAIN: optStrDefault('e2b.dev'),
+  E2B_TEMPLATE: optStr,
+
   // ── Platinum — Sandbox provisioning (conditional: required if platinum provider enabled) ──
   // Platinum is our own Cloud Hypervisor microVM API. PLATINUM_API_KEY is a
   // pt_live_… key; PLATINUM_API_URL is the control-plane base
@@ -900,7 +909,8 @@ const envSchema = z.object({
   // players (YouTube, Vimeo) work. Unset: pages are served from KORTIX_URL, opaque.
   ARTIFACT_CONTENT_URL: optStr,
   // Comma-separated. The first entry is the default for new sessions.
-  // Platinum is the reference; `daytona` is a legacy opt-in fallback.
+  // Platinum is the reference; `daytona` is a legacy opt-in fallback; `e2b`
+  // is the local-dev / opt-in cloud provider (no tunnel required).
   ALLOWED_SANDBOX_PROVIDERS: optStrDefault('platinum'),
 
   // ── Sandbox lifecycle (Daytona auto-stop / auto-archive / auto-delete) ────
@@ -1170,8 +1180,11 @@ type EnvIssue = { var: string; message: string; level: 'error' | 'warn' };
 // Recognised provider names. Source-of-truth for what can legally appear in
 // ALLOWED_SANDBOX_PROVIDERS — adding a new provider is a one-place change
 // here plus a case in `getProvider()` in platform/providers/index.ts.
-// `e2b` is not listed: E2B support is discontinued, so the entry is ignored.
-export const KNOWN_PROVIDERS: readonly SandboxProviderName[] = ['platinum', 'daytona'] as const;
+export const KNOWN_PROVIDERS: readonly SandboxProviderName[] = [
+  'platinum',
+  'daytona',
+  'e2b',
+] as const;
 
 /**
  * Parse comma-separated provider list (e.g. "platinum,daytona"). `fallback` is
@@ -1289,6 +1302,13 @@ function validateEnv(): z.infer<typeof envSchema> {
         message: `Required when ALLOWED_SANDBOX_PROVIDERS includes "platinum"${providerKeySuffix}`,
         level: providerKeyLevel,
       });
+  }
+  if (providers.includes('e2b') && !raw.E2B_API_KEY) {
+    issues.push({
+      var: 'E2B_API_KEY',
+      message: `Required when ALLOWED_SANDBOX_PROVIDERS includes "e2b"${providerKeySuffix}`,
+      level: providerKeyLevel,
+    });
   }
 
   // ── Conditional: Billing enabled → need Stripe keys ────────────────────
@@ -1731,6 +1751,10 @@ export const config = {
   KORTIX_SANDBOX_AUTODELETE_MINUTES: env.KORTIX_SANDBOX_AUTODELETE_MINUTES,
   KORTIX_SANDBOX_PROVIDER_AUTOSTOP_MINUTES: env.KORTIX_SANDBOX_PROVIDER_AUTOSTOP_MINUTES,
 
+  E2B_API_KEY: env.E2B_API_KEY,
+  E2B_DOMAIN: env.E2B_DOMAIN,
+  E2B_TEMPLATE: env.E2B_TEMPLATE,
+
   PLATINUM_API_KEY:
     env.PLATINUM_TARGET === 'local' ? env.PLATINUM_API_KEY_LOCAL : env.PLATINUM_API_KEY,
   PLATINUM_API_URL:
@@ -1895,6 +1919,8 @@ export const config = {
         return !!this.DAYTONA_API_KEY;
       case 'platinum':
         return !!this.PLATINUM_API_KEY;
+      case 'e2b':
+        return !!this.E2B_API_KEY;
       default: {
         const exhaustive: never = name;
         return exhaustive;

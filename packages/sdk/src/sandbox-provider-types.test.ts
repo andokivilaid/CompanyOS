@@ -8,7 +8,7 @@ import type {
 } from './index';
 import { updateWorkspaceSandboxProvider } from './index';
 
-test('Platinum and the legacy Daytona fallback are accepted anywhere consumers select or observe a sandbox provider', () => {
+test('Platinum, Daytona, and E2B are accepted anywhere consumers select or observe a sandbox provider', () => {
   const platformProvider: SandboxProviderName = 'platinum';
   const runtimeProvider: ProjectSessionSandbox['provider'] = 'platinum';
   const createProvider: NonNullable<CreateProjectSessionInput['provider']> = 'platinum';
@@ -16,6 +16,12 @@ test('Platinum and the legacy Daytona fallback are accepted anywhere consumers s
   const availableProvider: NonNullable<KortixProject['available_sandbox_providers']>[number] = 'daytona';
   const updateProvider: NonNullable<Parameters<typeof updateWorkspaceSandboxProvider>[1]> = 'daytona';
   const appProvider: AppHostingProvider = 'platinum';
+  const e2bProvider: SandboxProviderName = 'e2b';
+  const e2bRuntime: ProjectSessionSandbox['provider'] = 'e2b';
+  const e2bCreate: NonNullable<CreateProjectSessionInput['provider']> = 'e2b';
+  const e2bProjectPin: NonNullable<KortixProject['default_sandbox_provider']> = 'e2b';
+  const e2bUpdate: NonNullable<Parameters<typeof updateWorkspaceSandboxProvider>[1]> = 'e2b';
+  const e2bApp: AppHostingProvider = 'e2b';
 
   expect([
     platformProvider,
@@ -25,22 +31,30 @@ test('Platinum and the legacy Daytona fallback are accepted anywhere consumers s
     availableProvider,
     updateProvider,
     appProvider,
-  ]).toEqual(['platinum', 'platinum', 'platinum', 'platinum', 'daytona', 'daytona', 'platinum']);
+    e2bProvider,
+    e2bRuntime,
+    e2bCreate,
+    e2bProjectPin,
+    e2bUpdate,
+    e2bApp,
+  ]).toEqual([
+    'platinum',
+    'platinum',
+    'platinum',
+    'platinum',
+    'daytona',
+    'daytona',
+    'platinum',
+    'e2b',
+    'e2b',
+    'e2b',
+    'e2b',
+    'e2b',
+    'e2b',
+  ]);
 });
 
-test('retired providers (e2b, managed, justavps) are rejected by every public provider contract', () => {
-  // @ts-expect-error E2B support is discontinued
-  const e2b: SandboxProviderName = 'e2b';
-  // @ts-expect-error E2B support is discontinued
-  const e2bRuntime: ProjectSessionSandbox['provider'] = 'e2b';
-  // @ts-expect-error E2B support is discontinued
-  const e2bCreate: NonNullable<CreateProjectSessionInput['provider']> = 'e2b';
-  // @ts-expect-error E2B cannot be persisted as a project pin
-  const e2bProjectPin: NonNullable<KortixProject['default_sandbox_provider']> = 'e2b';
-  // @ts-expect-error E2B cannot be sent by the project pin mutation
-  const e2bUpdate: NonNullable<Parameters<typeof updateWorkspaceSandboxProvider>[1]> = 'e2b';
-  // @ts-expect-error E2B does not host Apps
-  const e2bApp: AppHostingProvider = 'e2b';
+test('retired providers (managed, justavps) are rejected by every public provider contract', () => {
   // @ts-expect-error managed is not a sandbox provider
   const managed: SandboxProviderName = 'managed';
   // @ts-expect-error justavps is not a sandbox provider
@@ -50,8 +64,5 @@ test('retired providers (e2b, managed, justavps) are rejected by every public pr
   // @ts-expect-error retired providers cannot be sent by the project pin mutation
   const retiredUpdate: NonNullable<Parameters<typeof updateWorkspaceSandboxProvider>[1]> = 'managed';
 
-  expect([
-    e2b, e2bRuntime, e2bCreate, e2bProjectPin, e2bUpdate, e2bApp,
-    managed, justavps, retiredProjectPin, retiredUpdate,
-  ]).toHaveLength(10);
+  expect([managed, justavps, retiredProjectPin, retiredUpdate]).toHaveLength(4);
 });

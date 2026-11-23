@@ -3,6 +3,7 @@
 const PROVIDER_LABEL: Record<string, string> = {
   platinum: 'Platinum',
   daytona: 'Daytona',
+  e2b: 'E2B',
 };
 
 /** Platinum is the reference provider. Daytona is a legacy fallback with removal scheduled. */
@@ -10,16 +11,17 @@ export function isLegacySandboxProvider(provider: string): boolean {
   return provider === 'daytona';
 }
 
-/** Sort key: Platinum first, legacy providers last. */
+/** Sort key: Platinum first, then E2B, legacy providers last. */
 export function sandboxProviderRank(provider: string): number {
-  return provider === 'platinum' ? 0 : isLegacySandboxProvider(provider) ? 2 : 1;
+  if (provider === 'platinum') return 0;
+  if (provider === 'e2b') return 1;
+  return isLegacySandboxProvider(provider) ? 3 : 2;
 }
 
 export function sortSandboxProviders<T extends string>(providers: readonly T[]): T[] {
   return [...providers].sort((a, b) => sandboxProviderRank(a) - sandboxProviderRank(b));
 }
 
-/** A value with no label (an old `e2b` row) shows raw. */
 export function formatSandboxProvider(provider: string): string {
   return PROVIDER_LABEL[provider] ?? provider;
 }

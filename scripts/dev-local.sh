@@ -35,6 +35,11 @@ done
 # scope check is then a no-op. See apps/api/src/projects/instance-scope.ts.
 export KORTIX_INSTANCE_ID="${KORTIX_INSTANCE_ID:-primary}"
 
+# Set by load_local_env when the committed dotenvx .env files cannot be
+# decrypted (no Dotenv Armor / .env.keys). The API then starts with
+# `dev:envfile` (plaintext .env.local only) instead of `dotenvx run -f .env`.
+DEV_PLAINTEXT_ENV=0
+
 load_local_env() {
   # pnpm --filter runs each package from its own directory, where Bun/Next may
   # auto-load package .env files. Be explicit here: use the app env files for
@@ -46,31 +51,40 @@ load_local_env() {
   # DOTENV_PRIVATE_KEY, apps/{api,web}/.env.keys, or the Dotenv Armor login
   # (`dotenvx armor login`, token in the OS keychain), and export into the shell
   # so the API (Bun) and web (Next) children inherit the plaintext values.
+  # Contributors without Dotenv Armor boot from gitignored apps/*/.env.local
+  # alone — decryption failure is a warning, never a hard stop.
   local DOTENVX="$ROOT_DIR/node_modules/.bin/dotenvx" _f _env
+  local _decrypt_ok=0
   if [[ -x "$DOTENVX" ]]; then
     for _f in apps/api/.env apps/web/.env; do
       _env="$("$DOTENVX" get --format eval -f "$ROOT_DIR/$_f" 2>/dev/null || true)"
       if [[ -z "$_env" || "$_env" == *'="encrypted:'* ]]; then
-        echo "[dev] ⚠️  could not decrypt $_f — run 'dotenvx armor login' (dotenvx 2.7.1+), or restore its .env.keys" >&2
+        echo "[dev] ⚠️  could not decrypt $_f — using gitignored .env.local (plaintext) if present; run 'dotenvx armor login' (dotenvx 2.7.1+) or restore .env.keys to decrypt the shared file" >&2
       else
         set -a; eval "$_env"; set +a
+        _decrypt_ok=1
       fi
     done
   else
-    echo "[dev] ⚠️  dotenvx not installed (run 'pnpm install') — env not loaded" >&2
+    echo "[dev] ⚠️  dotenvx not installed (run 'pnpm install') — env not loaded from encrypted .env" >&2
+  fi
+  if [[ "$_decrypt_ok" != "1" ]]; then
+    DEV_PLAINTEXT_ENV=1
   fi
 
   export KORTIX_LOCAL_DEV=1
   export ENV_MODE=local
   # Default only — the shared .env (decrypted above) or a personal .env.local
-  # (below) decides the real provider order (e.g. "platinum,daytona").
-  # Platinum is the reference provider; Daytona is a legacy opt-in fallback.
+  # (below) decides the real provider order (e.g. "platinum,daytona" or "e2b").
+  # Platinum is the reference provider; Daytona is a legacy opt-in fallback;
+  # E2B is the local-dev / opt-in cloud provider (no tunnel).
   export ALLOWED_SANDBOX_PROVIDERS="${ALLOWED_SANDBOX_PROVIDERS:-platinum}"
   # KORTIX_URL is resolved by ensure_dev_tunnel() below. Cloud (Platinum)
   # sandboxes call BACK to it (LLM router, web search, RPC) and cannot reach
   # this machine's localhost — so they need a public tunnel URL. The dashboard
   # keeps talking to the API on localhost via NEXT_PUBLIC_BACKEND_URL, so only
-  # the sandbox -> API direction goes through the tunnel.
+  # the sandbox -> API direction goes through the tunnel. E2B does not need a
+  # tunnel: the API dials sandbox.getHost(port) instead.
   # Follows PORT and honours a pre-set value, so a worktree booted on its own
   # api port bakes ITS port into the web bundle. Hardcoding 8008 sent every
   # hand-booted worktree's browser to the primary api (2026-09-06).
@@ -92,13 +106,20 @@ load_local_env() {
   # Personal per-machine overrides — sourced LAST so they beat both the shared
   # encrypted env and the defaults above. Gitignored plaintext KEY=VALUE files
   # (no spaces in unquoted values). This is where billing-off, provider order,
-  # etc. live for YOUR machine — never in the committed .env.
+  # E2B keys, etc. live for YOUR machine — never in the committed .env.
   for _f in apps/api/.env.local apps/web/.env.local; do
     if [[ -f "$ROOT_DIR/$_f" ]]; then
       set -a; source "$ROOT_DIR/$_f"; set +a
       echo "[dev] personal overrides loaded from $_f"
     fi
   done
+
+  # Local-dev convenience: E2B key present, no Platinum key, and the provider
+  # list is still the script default → prefer E2B (tunnel stays off).
+  if [[ -n "${E2B_API_KEY:-}" && -z "${PLATINUM_API_KEY:-}" && "${ALLOWED_SANDBOX_PROVIDERS}" == "platinum" ]]; then
+    export ALLOWED_SANDBOX_PROVIDERS=e2b
+    echo "[dev] E2B_API_KEY set, no PLATINUM_API_KEY → ALLOWED_SANDBOX_PROVIDERS=e2b (tunnel off by default)"
+  fi
 
   # Local REST-flow contracts use this deterministic, non-secret key. Keep the
   # running dev API and `pnpm test` on the same auth boundary.
@@ -834,8 +855,15 @@ else
 
   echo "[dev] Starting API (supervised — auto-restarts on tunnel rotation)..."
   cd "$ROOT_DIR"
+  # Without Dotenv Armor, `dotenvx run -f .env` would inject undecrypted
+  # `encrypted:…` values and fail URL validation. Prefer plaintext .env.local.
+  local api_dev_script=dev
+  if [[ "${DEV_PLAINTEXT_ENV}" == "1" || "${KORTIX_DEV_PLAINTEXT_ENV:-}" == "1" ]]; then
+    api_dev_script=dev:envfile
+    echo "[dev] API env: plaintext apps/api/.env.local only (dotenvx decrypt unavailable)"
+  fi
   while :; do
-    KORTIX_SKIP_ENSURE_SCHEMA=1 KORTIX_URL="$(cat "$TUNNEL_URL_FILE")" pnpm --filter kortix-api dev || true
+    KORTIX_SKIP_ENSURE_SCHEMA=1 KORTIX_URL="$(cat "$TUNNEL_URL_FILE")" pnpm --filter kortix-api "$api_dev_script" || true
     # Restart only when the watchdog rotated the tunnel; a plain exit (ctrl-C,
     # crash without rotation) leaves the loop so the script terminates normally.
     [[ -f "$TUNNEL_URL_FILE.rotated" ]] || break

@@ -278,10 +278,10 @@ describe('classifyDaemonHealth', () => {
 });
 
 describe('relaunchStrategyFor', () => {
-  test('platinum relaunches in place; daytona converges at next start; legacy e2b and unknown unsupported', () => {
+  test('platinum relaunches in place; daytona and e2b converge at next start; unknown unsupported', () => {
     expect(relaunchStrategyFor('platinum')).toBe('pt-app');
     expect(relaunchStrategyFor('daytona')).toBe('next-start');
-    expect(relaunchStrategyFor('e2b')).toBeNull();
+    expect(relaunchStrategyFor('e2b')).toBe('next-start');
     expect(relaunchStrategyFor('local')).toBeNull();
   });
 });

@@ -204,9 +204,9 @@ describe('formatSandboxProviders', () => {
     expect(formatSandboxProviders(['daytona', 'platinum'])).toBe('Platinum and Daytona');
   });
 
-  test('shows a provider with no label, such as a legacy e2b row, as its raw value', () => {
+  test('labels E2B and sorts Platinum, then E2B, then the legacy Daytona last', () => {
     expect(formatSandboxProviders(['daytona', 'e2b', 'platinum'])).toBe(
-      'Platinum, e2b and Daytona',
+      'Platinum, E2B and Daytona',
     );
   });
 });
