@@ -54,6 +54,7 @@ import { registerOauth2ConnectorsRoutes } from './routes/oauth2-connectors';
 import { registerConnectorMoveRoutes } from './routes/connector-moves';
 import { registerProjectDetailRoutes } from './routes/project-detail';
 import { registerProjectFilesRoutes } from './routes/project-files';
+import { registerKnowledgeRoutes } from './routes/knowledge';
 import { registerProjectSettingsRoutes } from './routes/project-settings';
 import { registerProjectAccessRoutes } from './routes/project-access';
 import { registerAccessRequestsRoutes } from './routes/access-requests';
@@ -161,6 +162,7 @@ export function registerAllProjectRoutes(): void {
   registerConnectorMoveRoutes();
   registerProjectDetailRoutes();
   registerProjectFilesRoutes();
+  registerKnowledgeRoutes();
   registerProjectSettingsRoutes();
   registerProjectAccessRoutes();
   registerAccessRequestsRoutes();

@@ -108,7 +108,7 @@ async function readRemoteBranchTip(
  * order (downstream index construction must stay deterministic).
  */
 export async function hashBlobs(
-  files: Array<{ path: string; content: string }>,
+  files: Array<{ path: string; content: string | Uint8Array }>,
   tempDir: string,
   repoPath: string,
 ): Promise<Array<{ path: string; sha: string }>> {
@@ -319,7 +319,7 @@ async function buildCommit(
   repoPath: string,
   tempDir: string,
   parentSha: string | null,
-  files: Array<{ path: string; content: string }>,
+  files: Array<{ path: string; content: string | Uint8Array }>,
   deletes: string[],
   message: string,
   identEnv: Record<string, string>,
@@ -375,7 +375,7 @@ async function buildCommit(
 interface CommitFilesOptions {
   /** Pin a destructive operation to the exact tree it inspected. */
   expectedCommit?: string;
-  files?: Array<{ path: string; content: string }>;
+  files?: Array<{ path: string; content: string | Uint8Array }>;
   /** Repo-relative paths to remove from the tree in the same commit. */
   deletes?: string[];
   message: string;
@@ -408,7 +408,7 @@ export async function commitMultipleFilesToBranch(
 ): Promise<{ commitSha: string; branch: string; fileCount: number }> {
   const files = (opts.files ?? [])
     .map((f) => ({ path: normalizeTreePath(f.path), content: f.content }))
-    .filter((f): f is { path: string; content: string } => Boolean(f.path));
+    .filter((f): f is { path: string; content: string | Uint8Array } => Boolean(f.path));
   const deletes = (opts.deletes ?? [])
     .map((p) => normalizeTreePath(p))
     .filter((p): p is string => Boolean(p));

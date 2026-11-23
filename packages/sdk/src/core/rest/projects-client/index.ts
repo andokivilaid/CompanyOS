@@ -66,6 +66,7 @@ export * from './goals';
 export * from './evals';
 export * from './calendar';
 export * from './goal-file';
+export * from './knowledge';
 export * from './notifications';
 export * from './chrome';
 

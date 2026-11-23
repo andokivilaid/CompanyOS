@@ -516,6 +516,7 @@ export const KORTIX_SKILL_NAMES = [
   'kortix-genui',
   'kortix-goals',
   'kortix-harness-refinement',
+  'kortix-knowledge',
   'kortix-memory',
   'kortix-onboarding',
   'kortix-program-agents',
