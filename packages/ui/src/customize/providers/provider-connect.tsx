@@ -195,6 +195,9 @@ export interface ProviderConnectViewProps {
   onLoadMore?: () => void;
   search: string;
   onSearchChange: (value: string) => void;
+  /** True until focus — blocks silent email injection into the search box. */
+  searchReadOnly?: boolean;
+  onSearchFocus?: () => void;
   /** The provider open in the host's sheet, if any. */
   selectedId?: string | null;
   onSelect: (providerId: string) => void;
@@ -286,6 +289,8 @@ export function ProviderConnectView({
   onLoadMore,
   search,
   onSearchChange,
+  searchReadOnly = false,
+  onSearchFocus,
   selectedId,
   onSelect,
   note,
@@ -300,13 +305,33 @@ export function ProviderConnectView({
           <Search />
         </InputGroupSearchIcon>
         <InputGroupSearchInput
-          type="text"
+          type="search"
           placeholder={t('searchPlaceholder', { count: totalCount })}
+          // Password managers / Chrome form-fill treat this screen as a login
+          // form (API-key fields in the sheet are `type="password"`) and inject
+          // the account email into the first text input — this search. Same
+          // opt-outs as the key fields; `readOnly` until focus is the reliable
+          // Chrome stop for silent username injection.
+          name="provider-catalogue-search"
           autoComplete="off"
+          autoCorrect="off"
+          spellCheck={false}
+          data-1p-ignore=""
+          data-lpignore="true"
+          data-bwignore="true"
+          data-form-type="other"
+          readOnly={searchReadOnly}
+          onFocus={onSearchFocus}
           value={search}
           onChange={(event) => onSearchChange(event.target.value)}
         />
-        <InputGroupSearchClear onClick={() => onSearchChange('')} />
+        {/* Always show Clear when the field has text — silent form-fill can
+            populate without focus, and `peer-focus:opacity-100` alone left
+            users stuck with an email they could not dismiss. */}
+        <InputGroupSearchClear
+          className={search ? 'opacity-100' : undefined}
+          onClick={() => onSearchChange('')}
+        />
       </InputGroupSearch>
 
       {note ? <p className="text-muted-foreground px-3 text-xs text-pretty">{note}</p> : null}
@@ -492,6 +517,19 @@ export function ProviderConnect({
   }, [now, subscriptions.logins, rowSummary]);
 
   const [search, setSearch] = useState('');
+  // Chrome (and some extensions) treat this page as a login form because
+  // provider key fields are `type="password"`, then inject the account email
+  // into the first text input — this search — even when the user never typed
+  // it. Rejecting email-shaped values and keeping the field read-only until
+  // focus stops that loop from sticking the UI on "No provider matches <email>".
+  const [searchEditable, setSearchEditable] = useState(false);
+  const setProviderSearch = (value: string) => {
+    if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())) {
+      setSearch('');
+      return;
+    }
+    setSearch(value);
+  };
   const [visibleCount, setVisibleCount] = useState(PROVIDER_PAGE_SIZE);
 
   const connectedIds = useMemo(
@@ -582,7 +620,9 @@ export function ProviderConnect({
       hiddenCount={available.length - visibleAvailable.length}
       onLoadMore={() => setVisibleCount((shown) => shown + PROVIDER_PAGE_SIZE)}
       search={search}
-      onSearchChange={setSearch}
+      onSearchChange={setProviderSearch}
+      searchReadOnly={!searchEditable}
+      onSearchFocus={() => setSearchEditable(true)}
       selectedId={selectedId}
       onSelect={onSelect}
       note={tPooled(canShare ? 'sharedDescription' : 'sharedOnlyYouDescription')}
