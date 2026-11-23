@@ -257,17 +257,16 @@ pnpm build          # build all packages
 pnpm nuke           # tear down the local Docker environment
 ```
 
-### Local development with E2B (no Platinum key / no tunnel)
+### Local development with E2B (no Platinum key)
 
 Agent sessions can run on [E2B](https://e2b.dev) sandboxes instead of Platinum:
 
 1. Copy `apps/api/.env.local.example` → `apps/api/.env.local`.
 2. Set `ALLOWED_SANDBOX_PROVIDERS=e2b`, `E2B_API_KEY` (from the E2B dashboard),
    and the local Supabase / secret values listed in the example.
-3. Optional: `cd apps/sandbox && npx e2b template build`, then set
-   `E2B_TEMPLATE=kortix-sandbox`.
-4. `pnpm install && pnpm dev` — cloudflared is skipped when the default
-   provider is `e2b`.
+3. Leave `E2B_TEMPLATE` empty. The API snapshot builder builds the template.
+4. Install `cloudflared`, then `pnpm install && pnpm dev`. E2B sandboxes call
+   back to the API, so the script starts a quick tunnel for `KORTIX_URL`.
 
 See **Local development with E2B** in `AGENTS.md` for the full env var table.
 

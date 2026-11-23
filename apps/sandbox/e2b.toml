@@ -1,11 +1,8 @@
 # E2B Cloud template for local Kortix sessions.
-# Build once (requires the e2b CLI and E2B_API_KEY):
-#
-#   export E2B_API_KEY=…
-#   cd apps/sandbox && e2b template build
-#
-# Then set E2B_TEMPLATE to the template name below in apps/api/.env.local.
-# Per-project templates from the API snapshot builder override this fallback.
+# The E2B CLI cannot build this: apps/sandbox/Dockerfile is multi-stage and
+# E2B CLI 2.x rejects multi-stage Dockerfiles. The API snapshot builder
+# (apps/api/src/snapshots/providers/e2b.ts) builds the E2B template instead,
+# so leave E2B_TEMPLATE empty in apps/api/.env.local.
 
 dockerfile = "Dockerfile"
 template_name = "kortix-sandbox"
