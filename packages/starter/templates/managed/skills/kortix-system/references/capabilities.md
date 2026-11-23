@@ -37,7 +37,7 @@ reviewable and self-hostable.
 | Apps | Builds sites, servers and backends in the repository and deploys them at a stable URL (the `kortix-apps` skill). |
 | Connectors | Acts in connected apps, MCP servers and HTTP APIs, with credentials kept server-side (the `kortix-connectors` skill). |
 | Secrets | Encrypted credentials, delivered only to the agents granted them. |
-| Memory and Drive | Files that outlive the session: the user's own folder and the company's shared folders (the `kortix-drives` and `kortix-memory` skills). |
+| Memory, knowledge and Drive | Files that outlive the session: the user's own folder and the company's shared folders (the `kortix-drives` and `kortix-memory` skills), plus uploaded project documents in `.kortix/knowledge/` (the `kortix-knowledge` skill). |
 | Triggers | Schedules, webhooks, connector and App events and merged change requests start agent work, or call an App (`SKILL.md` → `<scheduling>`). |
 | Channels | Slack and Teams start sessions where the team already works (the `kortix-slack` and `kortix-teams` skills). |
 | Subagents | Splits a large job across agents that run in parallel and report back. |

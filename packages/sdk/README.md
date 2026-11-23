@@ -1896,6 +1896,14 @@ sends one pseudonymous PostHog event at install time; set `OPENUI_TELEMETRY_DISA
 The server requires `project.file.write` and returns `{ commit_sha }` after pushing.
 A changed file returns HTTP 409 instead of overwriting another edit. Reload before retrying.
 
+### Project knowledge documents
+
+`kortix.project(projectId).knowledge` lists, uploads, updates, removes and downloads
+the documents in `.kortix/knowledge/` on the default branch. `list()` returns the
+index and server limits; `upload(files, { folder, description, replace })` lands
+one commit; `update({ path, newPath, description })`, `remove(path)` and
+`download(path)` complete the set. Cache reads with `qk.project.knowledge(projectId)`.
+
 ### Change request recovery
 
 `recoverChangeRequest(projectId, target, blocker)` queues a follow-up on the
