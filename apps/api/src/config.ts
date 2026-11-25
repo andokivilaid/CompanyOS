@@ -46,7 +46,8 @@ process.env.GIT_NO_LAZY_FETCH = '1';
 // Platinum is the reference provider. Daytona is a legacy fallback: its
 // removal is scheduled, existing Daytona sessions keep working for now, and it
 // gets no new features and no support guarantee. E2B is the local-dev / opt-in
-// cloud provider (API dials sandbox.getHost(port); no cloudflared tunnel).
+// cloud provider (API dials sandbox.getHost(port); the sandbox still calls
+// back to KORTIX_URL, so local dev needs the tunnel).
 export type SandboxProviderName = 'platinum' | 'daytona' | 'e2b';
 type InternalKortixEnv = 'dev' | 'staging' | 'prod' | 'preview';
 
@@ -909,7 +910,7 @@ const envSchema = z.object({
   ARTIFACT_CONTENT_URL: optStr,
   // Comma-separated. The first entry is the default for new sessions.
   // Platinum is the reference; `daytona` is a legacy opt-in fallback; `e2b`
-  // is the local-dev / opt-in cloud provider (no tunnel required).
+  // is the local-dev / opt-in cloud provider (needs a public KORTIX_URL).
   ALLOWED_SANDBOX_PROVIDERS: optStrDefault('platinum'),
 
   // ── Sandbox lifecycle (Daytona auto-stop / auto-archive / auto-delete) ────

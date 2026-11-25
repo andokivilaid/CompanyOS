@@ -542,17 +542,18 @@ mocked internals when a real surface exists.
 - **Sandboxes** — REAL cloud sandboxes. **Platinum** is the reference provider
   (`PLATINUM_API_KEY`). **Daytona** is a legacy fallback (removal scheduled).
   **E2B** is the local-dev / opt-in provider (`E2B_API_KEY`): the API dials the
-  sandbox via `sandbox.getHost(port)`, so no Platinum key and no cloudflared
-  tunnel are required. Select providers with
+  sandbox via `sandbox.getHost(port)`, so no Platinum key is required. The
+  sandbox still calls back to `KORTIX_URL`, so E2B needs the tunnel too.
+  Select providers with
   `ALLOWED_SANDBOX_PROVIDERS` (comma-separated; first entry = default). Each
   project session gets its own sandbox; `session_id == sandbox_id`. The sandbox
   daemon is reached through
   `http://localhost:8008/v1/p/<external_id>/8000/...`. The session runtime
   answers on the same proxy, under `/kortix/runtime/*`.
 - **Tunnel** — `scripts/dev-local.sh` (`pnpm dev`) auto-starts a cloudflared
-  quick tunnel when the default provider is Platinum or Daytona, so those
-  sandboxes can call back to `KORTIX_URL`. With `ALLOWED_SANDBOX_PROVIDERS=e2b`
-  (or first entry `e2b`), the tunnel is **off by default**.
+  quick tunnel when the default provider is Platinum, Daytona or E2B, so those
+  sandboxes can call back to `KORTIX_URL`. Session create refuses a loopback
+  `KORTIX_URL` (`apps/api/src/projects/lib/session-callback-probe.ts`).
 
 Bring it up with `pnpm dev` (it loads `apps/api/.env` + `apps/web/.env` when
 decryptable, else plaintext `apps/api/.env.local`, then starts Supabase, the
@@ -569,20 +570,19 @@ Use E2B when you have no Platinum key / Dotenv Armor access.
    - `ALLOWED_SANDBOX_PROVIDERS=e2b`
    - `E2B_API_KEY=…`
    - `E2B_DOMAIN=e2b.dev` (default; omit unless self-hosting E2B)
-   - `E2B_TEMPLATE=kortix-sandbox` (after the template build below), or leave
-     empty and let the snapshot builder create per-project templates
+   - leave `E2B_TEMPLATE` empty: the API snapshot builder builds the E2B
+     template itself (`apps/api/src/snapshots/providers/e2b.ts`)
    - local Supabase / `DATABASE_URL` / `API_KEY_SECRET` / `TUNNEL_SIGNING_SECRET`
      as listed in the example file
-3. Build the base E2B template once (optional if the snapshot builder runs):
-   ```bash
-   export E2B_API_KEY=…
-   cd apps/sandbox && npx e2b template build
-   ```
-   `apps/sandbox/e2b.toml` points at `apps/sandbox/Dockerfile`.
-4. `pnpm install` (pulls the `e2b` SDK), then `pnpm dev`.
+3. Do not build `apps/sandbox/Dockerfile` with the E2B CLI. It is a
+   multi-stage Dockerfile, and E2B CLI 2.x rejects it with
+   `Multi-stage Dockerfiles are not supported`.
+4. Install `cloudflared` (`brew install cloudflared`), run `pnpm install`
+   (pulls the `e2b` SDK), then `pnpm dev`. The script starts a quick tunnel
+   and exports its URL as `KORTIX_URL`.
 5. When `E2B_API_KEY` is set and `PLATINUM_API_KEY` is empty, `dev-local.sh`
    auto-sets `ALLOWED_SANDBOX_PROVIDERS=e2b` if you left the default as
-   `platinum`. Tunnel stays off. `PLATINUM_API_KEY` is **not** required.
+   `platinum`. `PLATINUM_API_KEY` is **not** required.
 
 Env vars (E2B):
 
@@ -596,7 +596,7 @@ Env vars (E2B):
 | `KORTIX_E2B_REMOVE_TIMEOUT_MS` | optional | `25000` |
 | `KORTIX_E2B_RENEW_TIMEOUT_MS` | optional | `25000` |
 | `KORTIX_E2B_STOP_TIMEOUT_MS` | optional | `25000` |
-| `KORTIX_DEV_TUNNEL` | optional | `auto` (`0` forces tunnel off) |
+| `KORTIX_DEV_TUNNEL` | optional | `auto` (`0` forces tunnel off; E2B sessions then fail) |
 
 > **Secrets are dotenvx-encrypted on the shared profiles.** `apps/api/.env`
 > (+ `.env.dev`) are committed as ciphertext; keys live in Dotenv Armor.

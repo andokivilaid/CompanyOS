@@ -77,14 +77,15 @@ load_local_env() {
   # Default only — the shared .env (decrypted above) or a personal .env.local
   # (below) decides the real provider order (e.g. "platinum,daytona" or "e2b").
   # Platinum is the reference provider; Daytona is a legacy opt-in fallback;
-  # E2B is the local-dev / opt-in cloud provider (no tunnel).
+  # E2B is the local-dev / opt-in cloud provider (needs the tunnel too).
   export ALLOWED_SANDBOX_PROVIDERS="${ALLOWED_SANDBOX_PROVIDERS:-platinum}"
   # KORTIX_URL is resolved by ensure_dev_tunnel() below. Cloud (Platinum)
   # sandboxes call BACK to it (LLM router, web search, RPC) and cannot reach
   # this machine's localhost — so they need a public tunnel URL. The dashboard
   # keeps talking to the API on localhost via NEXT_PUBLIC_BACKEND_URL, so only
-  # the sandbox -> API direction goes through the tunnel. E2B does not need a
-  # tunnel: the API dials sandbox.getHost(port) instead.
+  # the sandbox -> API direction goes through the tunnel. E2B needs it too:
+  # the API dials the sandbox via sandbox.getHost(port), but the sandbox still
+  # calls back to KORTIX_URL for its git clone credential and the runtime.
   # Follows PORT and honours a pre-set value, so a worktree booted on its own
   # api port bakes ITS port into the web bundle. Hardcoding 8008 sent every
   # hand-booted worktree's browser to the primary api (2026-09-06).
@@ -115,10 +116,10 @@ load_local_env() {
   done
 
   # Local-dev convenience: E2B key present, no Platinum key, and the provider
-  # list is still the script default → prefer E2B (tunnel stays off).
+  # list is still the script default → prefer E2B.
   if [[ -n "${E2B_API_KEY:-}" && -z "${PLATINUM_API_KEY:-}" && "${ALLOWED_SANDBOX_PROVIDERS}" == "platinum" ]]; then
     export ALLOWED_SANDBOX_PROVIDERS=e2b
-    echo "[dev] E2B_API_KEY set, no PLATINUM_API_KEY → ALLOWED_SANDBOX_PROVIDERS=e2b (tunnel off by default)"
+    echo "[dev] E2B_API_KEY set, no PLATINUM_API_KEY → ALLOWED_SANDBOX_PROVIDERS=e2b"
   fi
 
   # Local REST-flow contracts use this deterministic, non-secret key. Keep the
@@ -128,7 +129,7 @@ load_local_env() {
 
 # Front the local API with a public Cloudflare quick tunnel so cloud
 # sandboxes can reach it as $KORTIX_URL. No-op when KORTIX_DEV_TUNNEL=0 or the
-# default provider isn't cloud-based.
+# default provider isn't a cloud provider (platinum, daytona, e2b).
 ensure_dev_tunnel() {
   local api_port="${PORT:-8008}"
   local api_origin="http://localhost:${api_port}"
@@ -161,12 +162,15 @@ ensure_dev_tunnel() {
   fi
 
   # Non-cloud providers run on this machine — no public callback needed.
-  # Honor an explicit opt-out too.
-  if [[ "${KORTIX_DEV_TUNNEL:-auto}" == "0" || ( "$default_provider" != "daytona" && "$default_provider" != "platinum" ) ]]; then
+  # Honor an explicit opt-out too. E2B is a cloud provider: its sandboxes call
+  # back to KORTIX_URL, and session create refuses a loopback KORTIX_URL.
+  local cloud_provider=0
+  case "$default_provider" in platinum|daytona|e2b) cloud_provider=1 ;; esac
+  if [[ "${KORTIX_DEV_TUNNEL:-auto}" == "0" || "$cloud_provider" == "0" ]]; then
     export KORTIX_URL="$api_origin"
     printf '%s' "$api_origin" > "$TUNNEL_URL_FILE"
     echo "[dev] Tunnel skipped — KORTIX_URL=$KORTIX_URL"
-    if [[ "$default_provider" == "platinum" || "$default_provider" == "daytona" ]]; then
+    if [[ "$cloud_provider" == "1" ]]; then
       echo "[dev] ⚠️  Default sandbox provider ($default_provider) is a cloud provider but the tunnel is off —"
       echo "[dev]     sessions will fail to start ('KORTIX_URL points at a loopback address') because"
       echo "[dev]     the sandbox cannot reach $api_origin. Unset KORTIX_DEV_TUNNEL to enable it."

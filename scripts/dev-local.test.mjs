@@ -196,3 +196,14 @@ test('started quick tunnel: the watchdog still rotates a dead tunnel and bounces
     'https://stub-tunnel-2.trycloudflare.com',
   ]);
 });
+
+test('default provider e2b: a quick tunnel starts, the API never gets a loopback KORTIX_URL', () => {
+  const r = runDevLocal({ ALLOWED_SANDBOX_PROVIDERS: 'e2b', E2B_API_KEY: 'e2b_stub_key', PGREP_ALIVE: '0' });
+  const output = r.stdout + r.stderr;
+  assert.match(output, /Cloud sandbox callback ready/);
+  assert.doesNotMatch(output, /Tunnel skipped/);
+  assert.equal(r.status, 0, output);
+  const urls = apiStarts(r).map((line) => line.split('KORTIX_URL=')[1]);
+  assert.ok(urls.length > 0, output);
+  assert.ok(urls.every((u) => u.endsWith('.trycloudflare.com')), urls.join(', '));
+});
